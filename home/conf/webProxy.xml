@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+<queueApp stopMode="99999">
+  <loader name="main" home="${queuelet.user.home}" delegate="false">
+  </loader>
+
+  <queuelet type="generalJava">
+    <param name="className" value="org.hsqldb.Server"/>
+    <param name="arg0" value="-port"/>
+    <param name="arg1" value="8800"/>
+    <param name="arg2" value="-database.0"/>
+    <param name="arg3" value="file:${QUEUELET_HOME}/accessLog/accessLog"/>
+    <param name="arg4" value="-dbname.0"/>
+    <param name="arg5" value="accessLog"/>
+    <param name="arg6" value="-no_system_exit"/>
+    <param name="arg7" value="true"/>
+    <param name="arg8" value="-trace"/>
+    <param name="arg9" value="true"/>
+    <!--param name="arg" value="-silent"/>
+    <param name="arg" value="true"/-->
+  </queuelet>
+
+  <terminal name="httpContextPool" threadCount="0">
+    <queuelet loaderName="main" type="pool">
+      <param name="poolCount" value="32"/>
+      <param name="className" value="naru.web.HttpContext"/>
+      <param name="arg" value="16384"/>
+    </queuelet>
+  </terminal>
+
+  <terminal name="accessTracePool" threadCount="0">
+    <queuelet loaderName="main" type="pool">
+      <param name="poolCount" value="32"/>
+      <param name="className" value="naru.web.AccessTrace"/>
+    </queuelet>
+  </terminal>
+
+  <!--リクエスト受付端点 -->
+  <queuelet type="accept" nextTerminal="request">
+    <param name="port" value="8888"/>
+  </queuelet>
+
+  <!--リクエストデータの読み込み -->
+  <terminal name="request" threadCount="4">
+    <queuelet loaderName="main" className="naru.web.Request">
+      <param name="httpContextPool" value="httpContextPool"/>
+      <param name="proxy" value="proxy"/>
+      <param name="fileSystem" value="fileSystem"/>
+      <param name="controller" value="controller"/>
+      <param name="close" value="close"/>
+      <param name="peekStreamPool" value="peekStreamPool"/>
+      <param name="peek" value="peek"/>
+    </queuelet>
+  </terminal>
+
+  <!--レスポンスデータの読み込み -->
+  <terminal name="response" threadCount="4">
+    <queuelet loaderName="main" className="naru.web.Response">
+    </queuelet>
+  </terminal>
+
+  <!--proxy処理 -->
+  <terminal name="proxy" threadCount="4">
+    <queuelet loaderName="main" className="naru.web.Proxy">
+    </queuelet>
+  </terminal>
+
+  <!--webServer処理 -->
+  <terminal name="fileSystem" threadCount="4">
+    <queuelet loaderName="main" className="naru.web.FileSystem">
+    </queuelet>
+  </terminal>
+
+  <!--proxyCtrl処理 -->
+  <terminal name="controller" threadCount="4">
+    <queuelet loaderName="main" className="naru.web.Controller" nextTerminal="velocityPage">
+    </queuelet>
+  </terminal>
+
+  <!--velocityPage -->
+  <terminal name="velocityPage" threadCount="4" >
+    <queuelet loaderName="main" className="naru.web.VelocityPage"/>
+  </terminal>
+
+  <!--httpContextの終端、再利用処理 -->
+  <terminal name="close" threadCount="1" >
+    <!--queuelet type="log" /-->
+    <queuelet loaderName="main" className="naru.web.Close" nextTerminal="httpContextPool"/>
+  </terminal>
+
+  <terminal name="accesslog" threadCount="1" >
+    <queuelet loaderName="main" className="naru.web.AccesslogQueuelet"  nextTerminal="accessTracePool"/>
+  </terminal>
+
+  <terminal name="peek" threadCount="4" >
+    <queuelet loaderName="main" className="naru.web.PeekQueuelet">
+      <param name="bufferLength" value="16384"/>
+    </queuelet>
+  </terminal>
+
+</queueApp>
