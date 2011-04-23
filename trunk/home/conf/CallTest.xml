@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+<queueApp stopMode="check" checkInterval="1">
+<!-- for test start -->
+<loader name="main" callStack="true" delegate="false">
+</loader>
+ <terminal name="queuelet.test" threadCount="1">
+  <queuelet loaderName="main" className="${queuelet.test.class}">
+ </queuelet>
+<!-- for test end -->
+</queueApp>

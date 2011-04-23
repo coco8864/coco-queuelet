@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<queueApp checkInterval="check">
+  <loader name="loader1" callStack="true" home="${queuelet.user.home}" delegate="false">
+    <classHooker name="naru.test.queuelet.MainCallFunction" >
+      <methodHooker name="*"  after="log"/>
+    </classHooker>
+  </loader>
+
+  <queuelet type="generalJava" loaderName="loader1">
+    <param name="className" value="naru.test.queuelet.MainCallFunction"/>
+  </queuelet>
+
+  <terminal name="log" threadCount="1" maxQueueLength="128">
+    <queuelet type="log" loaderName="loader1" nextTerminal="dummy"/>
+  </terminal>
+</queueApp>

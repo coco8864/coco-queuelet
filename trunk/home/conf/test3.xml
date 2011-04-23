@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<!--queueApp stopMode="manager" managerPort="8090" -->
+<queueApp stopMode="1" >
+  <loader name="loader1" callStack="true" home="${queuelet.user.home}" delegate="false">
+    <classpath path="../home/target/classes"/>
+    <classHooker name="naru.test.queuelet.MainCallFunction" >
+      <methodHooker name="main"  before="async" returnValue='' />
+      <methodHooker name="intIntFunc"  before="async" returnValue='3334' />
+      <methodHooker name="stringStringFunc"  before="async" returnValue='"hello return"' />
+      <methodHooker name="intarryIntarrayFunc"  before="async" returnValue='null' />
+      <methodHooker name="objarryObjarrayFunc"  before="async" returnValue='null' />
+      <methodHooker name="mixFunc"  before="async" returnValue='' />
+      <methodHooker name="mixFunc2"  before="async" returnValue='' />
+      <methodHooker name="mixFunc3"  before="async" returnValue='' />
+      <methodHooker name="throwExceptionFunc"  before="async" returnValue='"dummy return"' />
+    </classHooker>
+  </loader>
+
+  <queuelet type="generalJava" loaderName="loader1">
+    <param name="className" value="naru.test.queuelet.MainCallFunction"/>
+  </queuelet>
+
+  <terminal name="async" threadCount="1" maxQueueLength="128" enqueWait="true">
+    <queuelet type="asyncCall" loaderName="loader1"/>
+  </terminal>
+</queueApp>
