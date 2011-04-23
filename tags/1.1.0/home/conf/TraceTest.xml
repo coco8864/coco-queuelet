@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<queueApp checkInterval="check">
+  <loader name="main" home="${queuelet.user.home}">
+  </loader>
+  <terminal name="httpDataPool" threadCount="0">
+    <queuelet loaderName="main" type="pool">
+      <param name="poolCount" value="128"/>
+      <param name="className" value="naru.http.HttpData"/>
+      <param name="arg" value="16384"/>
+    </queuelet>
+  </terminal>
+  <terminal name="trace" threadCount="1" maxQueueLength="128">
+    <queuelet loaderName="main" className="naru.web.StreamLogQueuelet" nextTerminal="pool">
+      <param name="traceBaseDir" value="f:/aa/"/>
+      <param name="bufferLength" value="16384"/>
+    </queuelet>
+  </terminal>
+</queueApp>

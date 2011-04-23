@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+<queueApp stopMode="1" checkInterval="1">
+<!-- for test start -->
+<loader name="main" callStack="true" delegate="false" resouceLoader="parent">
+   <classHooker name="${queuelet.test.class}" >
+    <methodHooker name="func1"  before="async" returnValue="4321+10000" />
+    <methodHooker name="func2"  before="async" returnValue='"dcba".toUpperCase()' />
+    <methodHooker name="func3"  before="async" returnValue='$1+":addString"' />
+    <!--methodHooker name="func3"  before="async" returnValue='$proceed($$)' /-->
+   </classHooker>
+</loader>
+<terminal name="queuelet.test" threadCount="1">
+  <queuelet loaderName="main" className="${queuelet.test.class}">
+ </queuelet>
+</terminal>
+<!-- for test end -->
+
+<terminal name="testQueue" threadCount="4">
+ <queuelet loaderName="main" factoryClassName="${queuelet.test.class}" factoryMethodName="getQueuelet">
+ </queuelet>
+</terminal>
+
+<terminal name="async" threadCount="1" maxQueueLength="128" enqueWait="true">
+  <queuelet type="asyncCall" loaderName="main"/>
+</terminal>
+</queueApp>

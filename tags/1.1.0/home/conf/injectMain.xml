@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<queueApp>
+  <loader name="main">
+  </loader>
+  <queuelet type="injectMain" loaderName="main">
+  </queuelet>
+</queueApp>

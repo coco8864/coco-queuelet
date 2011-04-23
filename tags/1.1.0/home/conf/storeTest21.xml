@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="Shift_JIS" ?>
+<queueApp checkInterval="10" >
+  <!--store startupServer="true" port="9001" interval="1000"/-->
+  <loader name="main" home="${queuelet.user.home}" >
+    <classHooker name="naru.test.queuelet.MainCallFunction" >
+      <methodHooker name="*"  after="LOG"/>
+    </classHooker>
+  </loader>
+
+  <terminal name="LOG" threadCount="1" maxQueueLength="128">
+    <store type="server" host="127.0.0.1" port="9001" interval="1000" loaderName="main" />
+    <queuelet type="log" />
+  </terminal>
+
+</queueApp>
