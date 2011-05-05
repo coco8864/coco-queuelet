@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 2.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-2.0.dtd" >
+    
+<hibernate-mapping>
+<!-- 
+    Created by the Middlegen Hibernate plugin 2.1
+
+    http://boss.bekk.no/boss/middlegen/
+    http://www.hibernate.org/
+-->
+
+<class 
+    name="naru.hibernate.QueueStore" 
+    table="QUEUE_STORE"
+>
+    <meta attribute="class-description" inherit="false">
+       @hibernate.class
+        table="QUEUE_STORE"
+    </meta>
+
+    <id
+        name="id"
+        type="java.lang.Integer"
+        column="ID"
+        unsaved-value="0"
+    >
+        <meta attribute="field-description">
+           @hibernate.id
+            generator-class="identity"
+            type="java.lang.Integer"
+            column="ID"
+            unsaved-value="0"
+
+
+        </meta>
+        <generator class="identity" />
+    </id>
+
+    <property
+        name="treminal"
+        type="java.lang.String"
+        column="TREMINAL"
+        length="128"
+    >
+        <meta attribute="field-description">
+           @hibernate.property
+            column="TREMINAL"
+            length="128"
+        </meta>    
+    </property>
+    <property
+        name="element"
+        type="java.lang.Object"
+        column="ELEMENT"
+    >
+        <meta attribute="field-description">
+           @hibernate.property
+            column="ELEMENT"
+        </meta>    
+    </property>
+
+    <!-- Associations -->
+  
+
+</class>
+</hibernate-mapping>
