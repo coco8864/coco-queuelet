@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import naru.queuelet.QueueletHooker;
 import naru.queuelet.loader.ClassHooker;
@@ -316,15 +315,8 @@ public class Container {
 	public void start() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException, IOException, SecurityException, IllegalArgumentException, NoSuchMethodException, InvocationTargetException {
 		logger.debug("start in");
-		Properties sysProp=System.getProperties();
-		Iterator sysPropItr=sysProp.keySet().iterator();
-		logger.info("System SecurityManager:"+System.getSecurityManager());
-		while(sysPropItr.hasNext()){
-			String key=(String)sysPropItr.next();
-			String value=sysProp.getProperty(key);
-			logger.info("System Property:"+key +":" +value);
-		}
 //		ClassLoader ql = (ClassLoader) Container.class.getClassLoader();
+
 		this.queueletArgs=Startup.getArgs();
 		
 		File homeDir=Startup.startupProperteis.getQueueletHome();

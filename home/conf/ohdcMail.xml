@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-<queueApp checkInterval="10">
-  <loader name="main" home="${ohdc.home}" delegate="false">
-  </loader>
-  <queuelet type="generalJava" loaderName="main">
-    <!--param name="className" value="naru.ohdc.mail.OhdcMailUI"/-->
-    <param name="className" value="naru.ohdc.util.ConfigUtilUI"/>
-  </queuelet>
-</queueApp>
