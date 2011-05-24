@@ -386,9 +386,14 @@ public class Startup {
 		}
 		return true;
 	}
+	
+	
+	
 
 	/* •’Ê‚Ì“ü‚èŒû */
 	public static void main(String[] args) throws FileNotFoundException {
+		
+		
 		clsInternalProperties();
 		startupProperteis=new StartupProperties();
 		try {
