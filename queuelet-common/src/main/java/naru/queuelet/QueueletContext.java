@@ -23,6 +23,8 @@ public interface QueueletContext {
 	Object deque();
 	Object deque(String terminal);
 	void finish();
+	void finish(boolean restart);//restart がtrueの場合、再起動
+	void finish(boolean restart,int xmx,String vmoption);//再起動時のメモリ(M)とvmoptionを指定
 	/**
 	 * @param string
 	 * @param file
