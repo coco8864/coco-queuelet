@@ -513,7 +513,8 @@ public class WatchInfo{
 	}
 	
 	public static void main(String arg[]) throws IOException{
-		WatchInfo watchInfo=WatchInfo.create("test",true,"c:/windows/notepad.exe",null,-1,3);
+//		WatchInfo watchInfo=WatchInfo.create("test",true,"c:/windows/notepad.exe",null,-1,3);
+		WatchInfo watchInfo=WatchInfo.create("test",true,"C:/jdk1.6.0_22/bin/java -version",null,-1,3);
 		System.out.println("commandLine:"+watchInfo.getCommandLine());
 		watchInfo.executeChild();
 		while(true){
