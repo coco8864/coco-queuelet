@@ -65,7 +65,8 @@ public class WatchDeamon implements Runnable{
 		}
 		//í‚é~íÜ
 		if(watchInfo.isRestart()){
-			if(retryCount>=watchInfo.getRestartLimit()){
+			int restartLimit=watchInfo.getRestartLimit();
+			if( restartLimit>0 && retryCount>=restartLimit){
 				System.out.println("Deamon:retry over:"+watchInfo.getName());//âπêMïsí 
 				return RETRY_OVER;
 			}
@@ -80,10 +81,6 @@ public class WatchDeamon implements Runnable{
 	public void run() {
 		int retryCount=0;
 		while(true){
-			try {
-				Thread.sleep(INTERVAL);
-			} catch (InterruptedException e) {
-			}
 			int ret=check(watchInfo,retryCount);
 			if(ret==DEMON_STOP){
 				break;
@@ -95,6 +92,10 @@ public class WatchDeamon implements Runnable{
 				retryCount++;
 			}else if(ret!=FORCE_END){
 				retryCount=0;
+			}
+			try {
+				Thread.sleep(INTERVAL);
+			} catch (InterruptedException e) {
 			}
 		}
 		System.out.println("Deamon:end:"+watchInfo.getName());
@@ -164,6 +165,7 @@ public class WatchDeamon implements Runnable{
 		}
 		stopFile.delete();
 		System.out.println("Deamon:stop");
+		System.exit(0);
 	}
 	
 	private static FilenameFilter watchFileFilter=new FilenameFilter() {  
