@@ -411,6 +411,10 @@ public class Container {
 	}
 
 	public void stop() {
+		stop(false,-1,null);
+	}
+	
+	public void stop(boolean restart, int xmx, String vmoption) {
 		logger.debug("Queuelet Container stop secuence");
 		if( !queueletDaemon.isStop() ){
 			//–{—ˆDeamon‚©‚ç’â~‚·‚×‚«‚¾‚ªStartUp‚©‚ç’â~‚³‚ê‚½ê‡

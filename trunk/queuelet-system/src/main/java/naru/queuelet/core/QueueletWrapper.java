@@ -241,6 +241,7 @@ public class QueueletWrapper implements QueueletContext{
 			if(terminal!=null){
 				terminalName=terminal.getName();
 			}
+			//TODO initに失敗(例外)した場合、containerの起動を失敗させた方がよいのではないか？
 			logger.warn("init exception:terminal="+ terminalName ,t);
 		}finally{
 			if( orgCl!=null){
@@ -318,7 +319,16 @@ public class QueueletWrapper implements QueueletContext{
 	 * @see naru.quelet.QueletCommand#finish()
 	 */
 	public void finish() {
+		finish(false,-1,null);
+	}
+	public void finish(boolean restart) {
+		finish(restart,-1,null);
+	}
+	public void finish(boolean restart, int xmx, String vmoption) {
 		if(terminal!=null){
+			if(restart==true){
+				logger.warn("finish restart parameter was ignored.");
+			}
 			terminal.finishQulet();
 		}else{
 			container.stop();
@@ -380,4 +390,5 @@ public class QueueletWrapper implements QueueletContext{
 	public String resolveProperty(String value,Properties prop) {
 		return container.getQueueletProperties().resolveProperty(value,prop);
 	}
+
 }
