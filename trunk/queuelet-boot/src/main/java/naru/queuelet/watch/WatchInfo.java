@@ -34,15 +34,11 @@ public class WatchInfo{
 	private static final int RESTART_LIMIT=HEART_BEAT_LIMIT_OFFSET+8;
 	private static final int IS_RESTART_OFFSET=RESTART_LIMIT+4;
 	private static final int IS_FORCE_END_OFFSET=IS_RESTART_OFFSET+4;
-	
 	private static final int COMMAND_LINE_OFFSET=IS_FORCE_END_OFFSET+4;
 	private static final int COMMAND_LINE_MAX=8192;
-	
 	private static final int ENVIRONMENT_OFFSET=COMMAND_LINE_OFFSET+4+COMMAND_LINE_MAX;
 	private static final int ENVIRONMENT_MAX=8192;
-	
 	private static final int WATCH_FILE_SIZE=ENVIRONMENT_OFFSET+4+ENVIRONMENT_MAX;
-	
 	private static final String WATCH_STOP_FLAG_FILE="watchStrop.flg";
 	private static final String WATCH_DIR_NAME="watch";
 	static final String WATCH_FILE_EXT=".wch";
@@ -89,7 +85,6 @@ public class WatchInfo{
 			}
 		}
 	}
-	
 	private synchronized long readLong(int offset){
 		FileLock lock=null;
 		try {
@@ -107,7 +102,6 @@ public class WatchInfo{
 			}
 		}
 	}
-	
 	private synchronized void writeLong(int offset,long value){
 		FileLock lock=null;
 		try {
@@ -125,7 +119,6 @@ public class WatchInfo{
 			}
 		}
 	}
-	
 	private synchronized String readString(int offset,int max){
 		byte[] buf=new byte[max];
 		FileLock lock=null;
@@ -150,7 +143,6 @@ public class WatchInfo{
 			}
 		}
 	}
-	
 	private synchronized void writeString(int offset,int maxSize,String value){
 		byte[] buf=new byte[maxSize];
 		FileLock lock=null;
@@ -189,25 +181,21 @@ public class WatchInfo{
 		}
 		return null;
 	}
-	
 	public static File getStopFlagFile(){
 		File watchDir=getWatchDir();
 		return new File(watchDir,WATCH_STOP_FLAG_FILE);
 	}
-	
-	
 	private static File getWatchFile(String name){
 		File watchFile=new File(getWatchDir(),name+WATCH_FILE_EXT);
 		return watchFile;
 	}
-	
 	public static WatchInfo create(String name) throws IOException{
 		return create(name,false);
 	}
-	
 	public static WatchInfo create(String name,boolean isWatching) throws IOException{
 		File watchFile=getWatchFile(name);
 		WatchInfo watchInfo=new WatchInfo(watchFile);
+		/*
 		if(!name.equals(watchInfo.getName())){
 			//名前が不一致
 			System.out.println("WatchInfo:name unmutch:"+name+":"+watchInfo.getName());
@@ -215,6 +203,7 @@ public class WatchInfo{
 			watchInfo.term();
 			return null;
 		}
+		*/
 		watchInfo.isDeamon=false;
 		if(isWatching){
 			if(watchInfo.isWatching()){
@@ -228,7 +217,6 @@ public class WatchInfo{
 		watchInfo.setIsWatching(isWatching);
 		return watchInfo;
 	}
-	
 	public static WatchInfo create(
 			String name,
 			boolean isWatching,//ファイルを作るだけの場合false,監視する場合true
@@ -251,7 +239,6 @@ public class WatchInfo{
 		watchInfo.setRestartLimit(restartLimit);
 		return watchInfo;
 	}
-	
 	private WatchInfo(File watchFile) throws IOException{
 		this.watchFile=watchFile;
 		this.watchAccessFile=new RandomAccessFile(watchFile,"rw");
@@ -259,7 +246,7 @@ public class WatchInfo{
 		this.watchFileBuffer=watchFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long)WATCH_FILE_SIZE);
 	}
 	
-	public void setShutdownHook(){
+	private void setShutdownHook(){
 		Runtime runtime=Runtime.getRuntime();
 		shutdownHook=new Thread(new TerminateHook());
 		runtime.addShutdownHook(shutdownHook);
@@ -294,6 +281,8 @@ public class WatchInfo{
 			watchAccessFile=null;
 		}
 		if(isDeamon){
+			//watchFileBufferがgcされないと、ファイルは削除できない
+			Runtime.getRuntime().gc();
 			watchFile.delete();
 		}
 	}
