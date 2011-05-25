@@ -1,12 +1,40 @@
 package naru.queuelet.watch;
 
+import java.io.File;
 import java.io.IOException;
+
+/*
+ * コマンドライン解析
+ * 1)"で囲まれているところは、１つの引数
+ * 2)1)以外のところは、スペース区切で引数を解釈
+ * [(".*")|(.*)]*
+ */
 
 public class QueueletWatcher {
 	private WatchInfo watchInfo;
 	private String vmOption;
 	private int xmx;
 	private String[] args;
+	
+	/*
+	private String buildCommandLine(){
+		String javaHome=System.getenv("JAVA_HOME");
+		String queueletHome=System.getenv("QUEUELET_HOME");
+		StringBuffer sb=new StringBuffer();
+		sb.append(javaHome);
+		sb.append(File.separatorChar);
+		sb.append("bin");
+		sb.append(File.separatorChar);
+		sb.append("java");
+		sb.append(" ");
+		sb.append("-Xmx");
+		sb.append(xmx);
+		sb.append("m -Xms");
+		sb.append(xmx);
+		sb.append("m ");
+	}
+	*/
+	
 	
 	//JAVA_HOME/java -DQUEUELET_HOME=xxx 
 	// -XmsYYm -XmxYYm  
