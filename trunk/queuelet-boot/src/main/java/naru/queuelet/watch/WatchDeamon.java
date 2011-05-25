@@ -22,6 +22,7 @@ public class WatchDeamon implements Runnable{
 	private static final int DEMON_STOP=3;
 	private static final int RETRY_OVER=4;
 	
+	private String name;
 	private WatchInfo watchInfo;
 	private Thread thread;
 	
@@ -37,19 +38,29 @@ public class WatchDeamon implements Runnable{
 	}
 	
 	private WatchDeamon(String name,String commandLine,String[] env,long heartBeatLimit,int restartMax) throws IOException{
+		this.name=name;
 		if(commandLine==null){
 			watchInfo=WatchInfo.create(name,true);
 		}else{
 			watchInfo=WatchInfo.create(name,true,commandLine,env,heartBeatLimit,restartMax);
+		}
+		if(watchInfo!=null && !name.equals(watchInfo.getName())){
+			System.out.println("Deamon:name error."+name +":"+watchInfo.getName());
+			watchInfo.term();
+			watchInfo=null;
 		}
 		thread=new Thread(this);
 		thread.start();
 	}
 	
 	private int check(WatchInfo watchInfo,int retryCount){
+		if(watchInfo==null){
+			System.out.println("Deamon:fail to entry:"+name);//音信不通
+			return DEMON_STOP;
+		}
 		if(watchInfo.isRun()){//起動中
 			if(watchInfo.isForceEnd()){//強制停止要求
-				System.out.println("Deamon:forceEnd:"+watchInfo.getName());
+				System.out.println("Deamon:forceEnd:"+name);
 				watchInfo.setIsForceEnd(false);
 				watchInfo.termanateChild();
 				return FORCE_END;
@@ -57,7 +68,7 @@ public class WatchDeamon implements Runnable{
 			long interval=System.currentTimeMillis()-watchInfo.getLastHeartBeat();
 			long heatBeatLimit=watchInfo.getHeartBeatLimist();
 			if(heatBeatLimit>0 && interval>heatBeatLimit){
-				System.out.println("Deamon:hangup:"+watchInfo.getName());//音信不通
+				System.out.println("Deamon:hangup:"+name);//音信不通
 				watchInfo.termanateChild();
 				return FORCE_END;
 			}
@@ -67,7 +78,7 @@ public class WatchDeamon implements Runnable{
 		if(watchInfo.isRestart()){
 			int restartLimit=watchInfo.getRestartLimit();
 			if( restartLimit>0 && retryCount>=restartLimit){
-				System.out.println("Deamon:retry over:"+watchInfo.getName());//音信不通
+				System.out.println("Deamon:retry over:"+name);//音信不通
 				return RETRY_OVER;
 			}
 			watchInfo.executeChild();
@@ -98,8 +109,10 @@ public class WatchDeamon implements Runnable{
 			} catch (InterruptedException e) {
 			}
 		}
-		System.out.println("Deamon:end:"+watchInfo.getName());
-		watchInfo.term();
+		System.out.println("Deamon:end:"+name);
+		if(watchInfo!=null){
+			watchInfo.term();
+		}
 		synchronized(this){//終了を待ち合わせる事ができる
 			watchInfo=null;
 			notify();

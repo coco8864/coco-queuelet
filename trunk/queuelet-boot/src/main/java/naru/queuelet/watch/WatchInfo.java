@@ -282,8 +282,8 @@ public class WatchInfo{
 		}
 		if(isDeamon){
 			//watchFileBufferがgcされないと、ファイルは削除できない
-			Runtime.getRuntime().gc();
-			watchFile.delete();
+			//Runtime.getRuntime().gc();
+			watchFile.deleteOnExit();
 		}
 	}
 	public String getName(){
