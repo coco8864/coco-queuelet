@@ -1,6 +1,7 @@
 package naru.queuelet.watch;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -42,6 +43,11 @@ public class WatchInfo{
 	
 	private static final int WATCH_FILE_SIZE=ENVIRONMENT_OFFSET+4+ENVIRONMENT_MAX;
 	
+	private static final String WATCH_STOP_FLAG_FILE="watchStrop.flg";
+	private static final String WATCH_DIR_NAME="watch";
+	static final String WATCH_FILE_EXT=".wch";
+	
+	private File watchFile;
 	private MappedByteBuffer watchFileBuffer;
 	private FileChannel watchFileChannel;
 	private RandomAccessFile watchAccessFile;
@@ -174,18 +180,24 @@ public class WatchInfo{
 			}
 		}
 	}
-
+	
 	public static File getWatchDir(){
 		String queueletHome=System.getProperty(StartupProperties.QUEUELET_HOME);
-		File watchDir=new File(queueletHome,"watch");
+		File watchDir=new File(queueletHome,WATCH_DIR_NAME);
 		if(watchDir.exists()&&watchDir.isDirectory()){
 			return watchDir;
 		}
 		return null;
 	}
 	
+	public static File getStopFlagFile(){
+		File watchDir=getWatchDir();
+		return new File(watchDir,WATCH_STOP_FLAG_FILE);
+	}
+	
+	
 	private static File getWatchFile(String name){
-		File watchFile=new File(getWatchDir(),name+".wch");
+		File watchFile=new File(getWatchDir(),name+WATCH_FILE_EXT);
 		return watchFile;
 	}
 	
@@ -196,10 +208,18 @@ public class WatchInfo{
 	public static WatchInfo create(String name,boolean isWatching) throws IOException{
 		File watchFile=getWatchFile(name);
 		WatchInfo watchInfo=new WatchInfo(watchFile);
+		if(!name.equals(watchInfo.getName())){
+			//–¼‘O‚ª•sˆê’v
+			System.out.println("WatchInfo:name unmutch:"+name+":"+watchInfo.getName());
+			watchInfo.isDeamon=true;
+			watchInfo.term();
+			return null;
+		}
 		watchInfo.isDeamon=false;
 		if(isWatching){
 			if(watchInfo.isWatching()){
 				System.out.println("WatchInfo:aleady watching:"+name);
+				watchInfo.term();
 				return null;//Šù‚ÉŠÄŽ‹’†
 			}
 			watchInfo.setShutdownHook();
@@ -233,9 +253,10 @@ public class WatchInfo{
 	}
 	
 	private WatchInfo(File watchFile) throws IOException{
-		watchAccessFile=new RandomAccessFile(watchFile,"rw");
-		watchFileChannel=watchAccessFile.getChannel();
-		watchFileBuffer=watchFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long)WATCH_FILE_SIZE);
+		this.watchFile=watchFile;
+		this.watchAccessFile=new RandomAccessFile(watchFile,"rw");
+		this.watchFileChannel=watchAccessFile.getChannel();
+		this.watchFileBuffer=watchFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long)WATCH_FILE_SIZE);
 	}
 	
 	public void setShutdownHook(){
@@ -271,6 +292,9 @@ public class WatchInfo{
 			} catch (IOException ignore) {
 			}
 			watchAccessFile=null;
+		}
+		if(isDeamon){
+			watchFile.delete();
 		}
 	}
 	public String getName(){
@@ -419,11 +443,8 @@ public class WatchInfo{
 	private class TerminateHook implements Runnable{
 		public void run() {
 			System.out.println("WatchInfo:TerminateHook:"+getName());
-			WatchProcess w=watchProcess;
-			if(w!=null){
-				w.stop();
-			}
-			setIsWatching(false);
+			shutdownHook=null;
+			term();
 		}
 	}
 	
@@ -512,23 +533,39 @@ public class WatchInfo{
 		}
 	}
 	
-	public static void main(String arg[]) throws IOException{
-//		WatchInfo watchInfo=WatchInfo.create("test",true,"c:/windows/notepad.exe",null,-1,3);
-		WatchInfo watchInfo=WatchInfo.create("test",true,"C:/jdk1.6.0_22/bin/java -version",null,-1,3);
-		System.out.println("commandLine:"+watchInfo.getCommandLine());
-		watchInfo.executeChild();
-		while(true){
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if(!watchInfo.isRun()){
-				break;
-			}
-			System.out.println("isRun:"+watchInfo.isRun());
-		}
+	private static void usage(){
+		System.out.println("usage:java "+ WatchInfo.class.getName()+ " [name|stop] commandLine interval count");
 	}
 	
+	public static void main(String arg[]) throws IOException{
+		if(arg.length==0){
+			usage();
+			return;
+		}
+		String name=arg[0];
+		if("stop".endsWith(name)){
+			File stopFile=getStopFlagFile();
+			(new FileOutputStream(stopFile)).close();
+			return;
+		}
+		if(arg.length<2){
+			usage();
+			return;
+		}
+		String commandLine=arg[1];
+		long interval=-1;
+		int count=-1;
+		if(arg.length>=3){
+			interval=Long.parseLong(arg[2]);
+		}
+		if(arg.length>=4){
+			count=Integer.parseInt(arg[3]);
+		}
+		WatchInfo watchInfo=WatchInfo.create(name,false,commandLine,null,interval,count);
+		if(watchInfo==null){
+			System.out.println("fail to watch:"+name);
+		}else{
+			System.out.println("OK:"+name);
+		}
+	}
 }

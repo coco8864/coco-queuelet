@@ -1,7 +1,18 @@
 package naru.queuelet.watch;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
+/* WatchDeamonとWatchInfoは、汎用ツールとして使用できるように設計
+ * javaやqueuelet containerに限らず、ダウン監視、再起動ができるようにしている。
+ */
 public class WatchDeamon implements Runnable{
 	private static final long INTERVAL=5000;//監視間隔
 	
@@ -94,11 +105,121 @@ public class WatchDeamon implements Runnable{
 		}
 	}
 	
+	private static String getName(File watchFile){
+		String fileName=watchFile.getName();
+		int length=fileName.length();
+		return fileName.substring(0, length-WatchInfo.WATCH_FILE_EXT.length());
+	}
+	
+	private static void entry(Map childlen,File[] watchFiles){
+		for(int i=0;i<watchFiles.length;i++){
+			File watchFile=watchFiles[i];
+			String name=getName(watchFile);
+			if(childlen.get(name)!=null){
+				continue;
+			}
+			WatchDeamon deamon=null;
+			try {
+				deamon=WatchDeamon.create(name);
+			} catch (IOException e) {
+				System.out.println("Deamon:fail to create:"+name);
+				e.printStackTrace();
+			}
+			if(deamon!=null){
+				System.out.println("Deamon:new entry:"+name);
+				childlen.put(name, deamon);
+			}else{
+				childlen.put(name, new Object());
+			}
+		}
+	}
+
+	private static void unentry(Map childlen,File[] watchFiles){
+		Set names=new HashSet();
+		for(int i=0;i<watchFiles.length;i++){
+			names.add(getName(watchFiles[i]));
+		}
+		Iterator itr=childlen.keySet().iterator();
+		while(itr.hasNext()){
+			String name=(String)itr.next();
+			if(!names.contains(name)){
+				itr.remove();
+			}
+		}
+	}
+	
+	private static void deamon(){
+		Map childlen=new HashMap();
+		File watchDir=WatchInfo.getWatchDir();
+		File stopFile=WatchInfo.getStopFlagFile();
+		System.out.println("Deamon:start.watchDir:"+watchDir.getAbsolutePath());
+		while(!stopFile.exists()){
+			try {
+				Thread.sleep(INTERVAL);
+			} catch (InterruptedException e) {
+			}
+			File[] watchFiles=watchDir.listFiles(watchFileFilter);
+			entry(childlen,watchFiles);
+			unentry(childlen,watchFiles);
+		}
+		stopFile.delete();
+		System.out.println("Deamon:stop");
+	}
+	
+	private static FilenameFilter watchFileFilter=new FilenameFilter() {  
+			public boolean accept(File file, String name) {  
+			return name.endsWith(WatchInfo.WATCH_FILE_EXT);
+			}  
+		};
+    
+	private static void usage(){
+		System.out.println("usage:java "+ WatchDeamon.class.getName()+ " [${name}|stop|start] commandLine interval count");
+	}
+	
+		
 	/**
+	 * 1)watchDirを監視して、処理対象がみつかれば、起動および監視を行う。
+	 * 2)watchDirにstopファイルがみつかれば処理をやめる
+	 * 3)watchDirに処理対象をエントリーするには、WatchInfo.cleateメソッドでできる
+	 * 4)watchInfoコマンドで処理対象をエントリーができる
+	 * 5)watchInfoコマンドで監視デーモンの停止ができる
+	 * 6)デーモン停止時には、監視対象を終了させる
+	 * 
 	 * @param args
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
-		WatchDeamon deamon=WatchDeamon.create("test","c:/windows/notepad.exe a.txt",null,-1,3);
+		if(args.length==0){
+			usage();
+			return;
+		}
+		String name=args[0];
+		if("stop".endsWith(name)){
+			File stopFile=WatchInfo.getStopFlagFile();
+			(new FileOutputStream(stopFile)).close();
+			return;
+		}else if("start".endsWith(name)){
+			deamon();
+			return;
+		}
+		if(args.length<2){
+			usage();
+			return;
+		}
+		String commandLine=args[1];
+		long interval=-1;
+		int count=-1;
+		if(args.length>=3){
+			interval=Long.parseLong(args[2]);
+		}
+		if(args.length>=4){
+			count=Integer.parseInt(args[3]);
+		}
+		WatchInfo watchInfo=WatchInfo.create(name,false,commandLine,null,interval,count);
+		if(watchInfo==null){
+			System.out.println("fail to watch:"+name);
+		}else{
+			System.out.println("OK:"+name);
+		}
 	}
 }

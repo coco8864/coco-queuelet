@@ -9,13 +9,13 @@ package naru.queuelet.startup;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Properties;
+import java.util.Map;
 
 import naru.queuelet.QueueletHooker;
+import naru.queuelet.watch.WatchInfo;
 
 /**
  * @author naru
@@ -24,6 +24,10 @@ import naru.queuelet.QueueletHooker;
  * ウィンドウ > 設定 > Java > コード生成 > コードとコメント
  */
 public class Startup {
+	private static final String QUEUELET_RESTART="QueueletRestart";
+	private static final String QUEUELET_VM_OPTION="QueueletVmOption";
+	private static final String QUEUELET_VM_XMX="QueuletVmXmx";
+	
 	public static final String MAINLOADER="queuelet.hooker.mainloader";
 	public static final String DEFAULT_MINLOADER_NAME="main";
 	
@@ -173,6 +177,7 @@ public class Startup {
 
 	private static Object mainContainerObject=null;
 	private static Class mainContainerClass=null;
+	private static Method getStopParamMethod=null;
 
 	public static Object start(InputStream queueletXml) {
 		Object containerObject=null;
@@ -189,8 +194,12 @@ public class Startup {
 			Method method = containerClass.getMethod("getInstance", paramTypes);
 			containerObject = method.invoke(null, paramValues);
 			
+			/* 終了判定に使用するgetStopParamメソッドを取得,ない場合はqueuelet-systemのversionが1.1.x以下 */
+			getStopParamMethod = containerClass.getMethod("getStopParam", new Class[0]);
+			
 			method = containerClass.getMethod("start", new Class[0]);
 			method.invoke(containerObject, new Object[0]);
+			
 		} catch (Throwable e) {
 			throw new IllegalStateException("container fail to Startup#start",e);
 		}
@@ -387,13 +396,23 @@ public class Startup {
 		return true;
 	}
 	
-	
-	
+	public static Map getStopParam() {
+		Map stopParam=null;
+		try {
+			stopParam=(Map)getStopParamMethod.invoke(mainContainerObject, new Object[0]);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+		return stopParam;
+	}
 
 	/* 普通の入り口 */
 	public static void main(String[] args) throws FileNotFoundException {
-		
-		
+		WatchInfo watchInfo=null;
 		clsInternalProperties();
 		startupProperteis=new StartupProperties();
 		try {
@@ -414,15 +433,33 @@ public class Startup {
 			setQueueletConfigration(confXmlFile);
 			mainContainerObject=start(new FileInputStream(confXmlFile));
 			
+			Map stopParam=null;
 			synchronized(mainContainerObject){
-				try {
-					mainContainerObject.wait();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				while(true){
+					stopParam=getStopParam();
+					if(stopParam!=null){
+						break;
+					}
+					try {
+						mainContainerObject.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
 			}
 			mainContainerObject=null;
-			
+			if(watchInfo==null){
+				return;
+			}
+			if(Boolean.TRUE.equals(stopParam.get(QUEUELET_RESTART))){
+				//restart指定があった
+				Integer xmx=(Integer)stopParam.get(QUEUELET_VM_XMX);
+				String vmoption=(String)stopParam.get(QUEUELET_VM_OPTION);
+				watchInfo.setIsRestart(true);
+			}else{
+				//restart指定がなかった
+				watchInfo.setIsRestart(false);
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
