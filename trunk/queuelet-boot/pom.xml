@@ -3,7 +3,7 @@
   <groupId>queuelet</groupId>
   <artifactId>queuelet-boot</artifactId>
   <name>Maven Quick Start Archetype</name>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <url>http://code.google.com/p/coco-queuelet/</url>
   <build>
     <plugins>
