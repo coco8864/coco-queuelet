@@ -14,16 +14,31 @@ import naru.queuelet.startup.StartupProperties;
 
 public class WatchInfo{
 	/*
+	 * 起動時　demonからchildに環境変数経由でtokenを渡す
+	 * 共有するファイル => .wch(isWatching,lastHeartBeat,isRestart,isForceEnd)
+	 * deamonは、childが終了した時、token.propertiesを参照する
+	 * 終了時childからdeamonに通知するファイル => token.properties
+	 * 終了時、isRestartがtrueならば、再起動する
+	 * その時、token.properitesがあれば、起動情報を更新する。
+	 * 
+	 * token.propertiesでは以下が指定できる。
+	 * args
+	 * 環境変数
+	 * 
+	 * child -> 最新更新
+	 *       -> isForceEnd,isRestart
+	 * 
 	 * 名前 name 4 +16　
 	 * 監視中　isWatching 4 
 	 * 起動中　isRun 4 
-	 * 最新更新 lastHeartBeat 8
+	 * (*)最新更新 lastHeartBeat 8
 	 * 更新限界 heartBeatLimit 8
 	 * 再起動限界 restartLimit 4
-	 * 再起動指定 isRestart 4
-	 * 強制終了指定 isForceEnd 4
-	 * コマンドライン commandLine 4 + 8192
-	 * 環境変数 environment 4 +8192
+	 * (*)再起動指定 isRestart 4
+	 * (*)強制終了指定 isForceEnd 4
+	 * (*)コマンドライン commandLine 4 + 8192
+	 * (*)環境変数 environment 4 + 8192
+	 * (*)カレントディレクトリ currentDir 4 + 2048
 	 */
 	private static final int NAME_OFFSET=0;
 	private static final int NAME_MAX=16;
