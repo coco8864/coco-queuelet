@@ -6,6 +6,7 @@
  */
 package naru.queuelet;
 
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -23,8 +24,15 @@ public interface QueueletContext {
 	Object deque();
 	Object deque(String terminal);
 	void finish();
-	void finish(boolean restart);//restart がtrueの場合、再起動
-	void finish(boolean restart,int xmx,String vmoption);//再起動時のメモリ(M)とvmoptionを指定
+	/**
+	 * terminal配下ではない、Queueletで指定できる。
+	 * isForceEnd:正常のシーケンスを経ずにデーモンから強制終了を試みる。（正常の終了シーケンスも走行させる）
+	 * isRestart:終了時に再起動するか否かを指定,falseの場合以降は無視される。
+	 * javaHeap:再起動時に指定する-XmxSS(m)の値を指定、負の値の場合、現状値
+	 * javaVmOptions:再起動時に指定するjava VMオプションを指定、nullの場合、現状値
+	 * args:再起動時に指定する引数を指定、nullの場合、現状値
+	 */
+	void finish(boolean isForceEnd,boolean isRestart,Map restartOption);
 	/**
 	 * @param string
 	 * @param file
