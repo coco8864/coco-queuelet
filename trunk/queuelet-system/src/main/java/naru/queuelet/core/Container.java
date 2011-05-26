@@ -316,14 +316,22 @@ public class Container {
 	public void start() throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException, IOException, SecurityException, IllegalArgumentException, NoSuchMethodException, InvocationTargetException {
 		logger.debug("start in");
+		logger.info("System SecurityManager:"+System.getSecurityManager());
 		Properties sysProp=System.getProperties();
 		Iterator sysPropItr=sysProp.keySet().iterator();
-		logger.info("System SecurityManager:"+System.getSecurityManager());
 		while(sysPropItr.hasNext()){
 			String key=(String)sysPropItr.next();
 			String value=sysProp.getProperty(key);
 			logger.info("System Property:"+key +":" +value);
 		}
+		Map envs=System.getenv();
+		Iterator envItr=envs.keySet().iterator();
+		while(envItr.hasNext()){
+			Object key=envItr.next();
+			Object value=envs.get(key);
+			logger.info("System env:"+key +":" +value);
+		}
+		
 //		ClassLoader ql = (ClassLoader) Container.class.getClassLoader();
 		this.queueletArgs=Startup.getArgs();
 		

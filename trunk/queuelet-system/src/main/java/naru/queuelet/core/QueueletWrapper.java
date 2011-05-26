@@ -319,14 +319,11 @@ public class QueueletWrapper implements QueueletContext{
 	 * @see naru.quelet.QueletCommand#finish()
 	 */
 	public void finish() {
-		finish(false,-1,null);
+		finish(false,false,null);
 	}
-	public void finish(boolean restart) {
-		finish(restart,-1,null);
-	}
-	public void finish(boolean restart, int xmx, String vmoption) {
+	public void finish(boolean isForceEnd,boolean isRestart,Map restartOption) {
 		if(terminal!=null){
-			if(restart==true){
+			if(isForceEnd==true || isRestart==true){
 				logger.warn("finish restart parameter was ignored.");
 			}
 			terminal.finishQulet();
