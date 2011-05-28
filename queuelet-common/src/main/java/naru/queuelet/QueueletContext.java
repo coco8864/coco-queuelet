@@ -9,6 +9,8 @@ package naru.queuelet;
 import java.util.Map;
 import java.util.Properties;
 
+import naru.queuelet.watch.StartupInfo;
+
 /**
  * @author naru
  *
@@ -32,7 +34,7 @@ public interface QueueletContext {
 	 * javaVmOptions:再起動時に指定するjava VMオプションを指定、nullの場合、現状値
 	 * args:再起動時に指定する引数を指定、nullの場合、現状値
 	 */
-	void finish(boolean isForceEnd,boolean isRestart,Map restartOption);
+	void finish(boolean isForceEnd,boolean isRestart,StartupInfo startupInfo);
 	/**
 	 * @param string
 	 * @param file
