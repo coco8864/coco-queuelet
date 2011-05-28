@@ -15,7 +15,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import naru.queuelet.QueueletHooker;
-import naru.queuelet.watch.WatchInfo;
 
 /**
  * @author naru
@@ -412,7 +411,6 @@ public class Startup {
 
 	/* ïÅí ÇÃì¸ÇËå˚ */
 	public static void main(String[] args) throws FileNotFoundException {
-		WatchInfo watchInfo=null;
 		clsInternalProperties();
 		startupProperteis=new StartupProperties();
 		try {
@@ -448,18 +446,6 @@ public class Startup {
 				}
 			}
 			mainContainerObject=null;
-			if(watchInfo==null){
-				return;
-			}
-			if(Boolean.TRUE.equals(stopParam.get(QUEUELET_RESTART))){
-				//restartéwíËÇ™Ç†Ç¡ÇΩ
-				Integer xmx=(Integer)stopParam.get(QUEUELET_VM_XMX);
-				String vmoption=(String)stopParam.get(QUEUELET_VM_OPTION);
-				watchInfo.setIsRestart(true);
-			}else{
-				//restartéwíËÇ™Ç»Ç©Ç¡ÇΩ
-				watchInfo.setIsRestart(false);
-			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (SecurityException e) {
