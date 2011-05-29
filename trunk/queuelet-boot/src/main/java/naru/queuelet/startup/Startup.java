@@ -176,7 +176,7 @@ public class Startup {
 
 	private static Object mainContainerObject=null;
 	private static Class mainContainerClass=null;
-	private static Method getStopParamMethod=null;
+	private static Method isRunningMethod=null;
 
 	public static Object start(InputStream queueletXml) {
 		Object containerObject=null;
@@ -194,7 +194,7 @@ public class Startup {
 			containerObject = method.invoke(null, paramValues);
 			
 			/* 終了判定に使用するgetStopParamメソッドを取得,ない場合はqueuelet-systemのversionが1.1.x以下 */
-			getStopParamMethod = containerClass.getMethod("getStopParam", new Class[0]);
+			isRunningMethod = containerClass.getMethod("isRunning", new Class[0]);
 			
 			method = containerClass.getMethod("start", new Class[0]);
 			method.invoke(containerObject, new Object[0]);
@@ -395,10 +395,10 @@ public class Startup {
 		return true;
 	}
 	
-	public static Map getStopParam() {
-		Map stopParam=null;
+	public static boolean isRunning() {
 		try {
-			stopParam=(Map)getStopParamMethod.invoke(mainContainerObject, new Object[0]);
+			Boolean ret=(Boolean)isRunningMethod.invoke(mainContainerObject, new Object[0]);
+			return ret?true:false;
 		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
@@ -406,9 +406,10 @@ public class Startup {
 		} catch (InvocationTargetException e) {
 			e.printStackTrace();
 		}
-		return stopParam;
+		return false;
 	}
 
+	private static long RUNNING_CHECK_INTERVAL=10000;
 	/* 普通の入り口 */
 	public static void main(String[] args) throws FileNotFoundException {
 		clsInternalProperties();
@@ -430,16 +431,14 @@ public class Startup {
 			}
 			setQueueletConfigration(confXmlFile);
 			mainContainerObject=start(new FileInputStream(confXmlFile));
-			
-			Map stopParam=null;
+			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 			synchronized(mainContainerObject){
 				while(true){
-					stopParam=getStopParam();
-					if(stopParam!=null){
+					if(!isRunning()){
 						break;
 					}
 					try {
-						mainContainerObject.wait();
+						mainContainerObject.wait(RUNNING_CHECK_INTERVAL);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
