@@ -2,11 +2,9 @@ package naru.queuelet.watch;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
@@ -248,6 +246,7 @@ public class WatchFile {
 		watchFile.setForceEnd(false);
 		watchFile.setRestart(true);
 		watchFile.isDeamon=true;
+		watchFile.startupInfo=new StartupInfo();
         return watchFile;
 	}
 	
@@ -291,6 +290,11 @@ public class WatchFile {
 		if(!isDeamon || watchProcess!=null){
 			return false;
 		}
+        //再起動回数を更新
+        int restartCount=this.startupInfo.getRestartCount();
+        startupInfo.setRestartCount(restartCount);
+        this.startupInfo.setRestartCount(restartCount+1);
+		
 		//起動する前にtokenを作成する。
 		SecureRandom random;
 		try {
@@ -372,6 +376,24 @@ public class WatchFile {
 	public File getResponseFile(){
 		File watchFile=new File(getWatchDir(),getName()+getToken()+WATCH_FILE_EXT);
 		return watchFile;
+	}
+	
+	/* 監視対象から、次回起動時の起動情報をDeamonに通知する */
+	public void setResponseStartupInfo(StartupInfo restartStartup){
+		File responseFile=getResponseFile();
+		try {
+			byte[] data=serializseStartupInfo(restartStartup);
+			if(data==null){
+				return;
+			}
+			RandomAccessFile response=new RandomAccessFile(responseFile,"rw");
+			response.write(data);
+			response.close();
+		} catch (IOException e) {
+			if(responseFile!=null){
+				responseFile.delete();
+			}
+		}
 	}
 	
 	public StartupInfo getResponseStartupInfo(){

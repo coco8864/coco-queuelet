@@ -93,6 +93,7 @@ public class WatchProcess implements Runnable{
 		int length=(int)responseFile.length();
 		RandomAccessFile response=new RandomAccessFile(responseFile,"r");
 		responseStartupInfo=WatchFile.deserializseStartupInfo(response,length);
+		response.close();
 		responseFile.delete();
 	}
 	
