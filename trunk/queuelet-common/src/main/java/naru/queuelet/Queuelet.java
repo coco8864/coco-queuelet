@@ -15,6 +15,12 @@ import java.util.Map;
  * Window>Preferences>Java>Code Generation>Code and Comments
  */
 public interface Queuelet {
+	public static final String PARAM_KEY_DEAMON="QueueletDaemon";
+	public static final String PARAM_KEY_LOADER="QueueletLoader";
+	public static final String PARAM_KEY_ARGS="QueueletArgs";
+	public static final String PARAM_KEY_THIS_TERMINAL="thisTerminal";
+	public static final String PARAM_KEY_STARTUPINFO="QueueletStartupInfo";
+	
 	/**
 	 * éÂèàóù
 	 * 
