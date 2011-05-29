@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import naru.queuelet.Queuelet;
 import naru.queuelet.QueueletContext;
 import naru.queuelet.util.CallThreadUtil;
+import naru.queuelet.watch.StartupInfo;
 
 /**
  * @author naru
@@ -321,7 +322,7 @@ public class QueueletWrapper implements QueueletContext{
 	public void finish() {
 		finish(false,false,null);
 	}
-	public void finish(boolean isForceEnd,boolean isRestart,Map restartOption) {
+	public void finish(boolean isForceEnd,boolean isRestart,StartupInfo restartOption) {
 		if(terminal!=null){
 			if(isForceEnd==true || isRestart==true){
 				logger.warn("finish restart parameter was ignored.");
