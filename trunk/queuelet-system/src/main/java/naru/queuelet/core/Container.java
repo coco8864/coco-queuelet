@@ -335,7 +335,6 @@ public class Container {
 		}
 		
 		/* 監視対象としての処理 */
-		queueletDaemon.start();
 		watchFile=WatchFile.mapWatchFile();
 		StartupInfo startupInfo=null;//Deamonがこのコンテナを起動した時の情報
 		if(watchFile!=null){
@@ -414,8 +413,9 @@ public class Container {
 		
 		for(int i=0;i<queuelets.size();i++){
 			QueueletWrapper wrapper = (QueueletWrapper) queuelets.get(i);
-			wrapper.init(this);
+			wrapper.init(this,startupInfo);
 		}
+		queueletDaemon.start();
 		/*
 		itr = queuelets.iterator();
 		while (itr.hasNext()) {
@@ -425,10 +425,6 @@ public class Container {
 		*/
 		isRunning=true;
 		logger.info("Queuelet Container start");
-	}
-	
-	public void stop() {
-		stop(false,-1,null);
 	}
 	
 	private WatchFile watchFile=null;
@@ -441,7 +437,22 @@ public class Container {
 		return isRunning;
 	}
 	
-	public void stop(boolean restart, int xmx, String vmoption) {
+	public void setupRestartInfo(boolean isForceEnd,boolean isRestart,StartupInfo restartStartup){
+		if(watchFile==null){
+			return;
+		}
+		if(isRestart){
+			watchFile.setResponseStartupInfo(restartStartup);
+		}
+		watchFile.setRestart(isRestart);
+		watchFile.setForceEnd(isForceEnd);
+		boolean b1=watchFile.isRestart();
+		boolean b2=watchFile.isForceEnd();
+		System.out.println("b1:"+b1 +" b2:"+b2);
+		(new Exception()).printStackTrace();
+	}
+	
+	public void stop() {
 		logger.debug("Queuelet Container stop secuence");
 		if( !queueletDaemon.isStop() ){
 			//本来Deamonから停止すべきだがStartUpから停止された場合

@@ -177,8 +177,12 @@ public class QueueletWrapper implements QueueletContext{
 		Method method = factoryClass.getMethod(factoryMethodName, paramTypes);
 		return (Queuelet)method.invoke(null, paramValues);
 	}
-	
+
 	public void init(Container container) {
+		init(container,null);
+	}
+
+	public void init(Container container,StartupInfo startupInfo) {
 		logger.debug("QueletWrapper init in.type:"+ type +",className:"+className);
 		this.container=container;
 		this.loader=container.getLoader(loaderName);
@@ -206,11 +210,14 @@ public class QueueletWrapper implements QueueletContext{
 		factoryClassName=container.resolveProperty(factoryClassName);
 		factoryMethodName=container.resolveProperty(factoryMethodName);
 		
-		param.put("QueueletDaemon",container.getQueueletDaemon());
-		param.put("QueueletLoader",loader);
-		param.put("QueueletArgs",container.getArgs());
+		param.put(Queuelet.PARAM_KEY_DEAMON,container.getQueueletDaemon());
+		param.put(Queuelet.PARAM_KEY_LOADER,loader);
+		param.put(Queuelet.PARAM_KEY_ARGS,container.getArgs());
 		if(terminal!=null){
-			param.put("thisTerminal",terminal.getName());
+			param.put(Queuelet.PARAM_KEY_THIS_TERMINAL,terminal.getName());
+		}
+		if(startupInfo!=null){
+			param.put(Queuelet.PARAM_KEY_STARTUPINFO,startupInfo);
 		}
 		
 		/* コンテキストクラスローダを変更する */
@@ -322,13 +329,14 @@ public class QueueletWrapper implements QueueletContext{
 	public void finish() {
 		finish(false,false,null);
 	}
-	public void finish(boolean isForceEnd,boolean isRestart,StartupInfo restartOption) {
+	public void finish(boolean isForceEnd,boolean isRestart,StartupInfo restartStartup) {
 		if(terminal!=null){
 			if(isForceEnd==true || isRestart==true){
 				logger.warn("finish restart parameter was ignored.");
 			}
 			terminal.finishQulet();
 		}else{
+			container.setupRestartInfo(isForceEnd, isRestart, restartStartup);
 			container.stop();
 		}
 	}
