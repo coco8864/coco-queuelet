@@ -446,10 +446,6 @@ public class Container {
 		}
 		watchFile.setRestart(isRestart);
 		watchFile.setForceEnd(isForceEnd);
-		boolean b1=watchFile.isRestart();
-		boolean b2=watchFile.isForceEnd();
-		System.out.println("b1:"+b1 +" b2:"+b2);
-		(new Exception()).printStackTrace();
 	}
 	
 	public void stop() {
