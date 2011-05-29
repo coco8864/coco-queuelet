@@ -19,7 +19,7 @@ public class WatchProcess implements Runnable{
 			thread.start();
 		}
 		public void run() {
-			System.out.println("WatchInfo:StdReader start:"+out);
+//			System.out.println("WatchInfo:StdReader start:"+out);
 			byte[] buf=new byte[4096];
 			while(true){
 				int len;
@@ -38,17 +38,18 @@ public class WatchProcess implements Runnable{
 			} catch (IOException ignore) {
 			}
 			is=null;
-			System.out.println("WatchInfo:StdReader end:"+out);
+//			System.out.println("WatchInfo:StdReader end:"+out);
 		}
 	}
 	private class TerminateHook implements Runnable{
 		public void run() {
-			System.out.println("WatchProcess:TerminateHook:"+watchFile.getName());
+			System.out.println("WatchProcess:TerminateHook:"+name);
 			shutdownHook=null;
 			stop();
 		}
 	}
 	private WatchFile watchFile;
+	private String name;
 	private String[] cmd;
 	private String[] env;
 	
@@ -61,6 +62,7 @@ public class WatchProcess implements Runnable{
 	
 	public WatchProcess(WatchFile watchFile,String[] cmd,String[] env){
 		this.watchFile=watchFile;
+		this.name=watchFile.getName();
 		this.cmd=cmd;
 		if(env==null){
 			Map selfEnv=System.getenv();
@@ -87,6 +89,7 @@ public class WatchProcess implements Runnable{
 		if(!responseFile.exists()){
 			return;
 		}
+		System.out.println("WatchProcess:responseStartupInfo exists:"+name);
 		int length=(int)responseFile.length();
 		RandomAccessFile response=new RandomAccessFile(responseFile,"r");
 		responseStartupInfo=WatchFile.deserializseStartupInfo(response,length);
@@ -105,13 +108,14 @@ public class WatchProcess implements Runnable{
 		process=null;
 		try {
 			process=runtime.exec(cmd,env);
+			Process p=process;
 			new StdReader(process.getInputStream(),System.out);
 			new StdReader(process.getErrorStream(),System.err);
 			watchFile.heartBeat();//初回heart beatはdeamonから実施
 			process.waitFor();
 			//プロセス終了、responseファイルを探す
 			readResponseStartupInfo();
-			System.out.println("exitValue:"+process.exitValue());
+			System.out.println("exitValue:"+p.exitValue());
 			process=null;
 		} catch (InterruptedException e) {
 		} catch (IOException e) {
@@ -129,11 +133,13 @@ public class WatchProcess implements Runnable{
 		}
 	}
 	public void start(){
+		System.out.println("WatchProcess:startChild:"+name);
 		runThread=new Thread(this);
 		runThread.start();
 	}
 	
 	public void stop(){
+		System.out.println("WatchProcess:stopChild:"+name);
 		Thread s=shutdownHook;
 		if(s!=null){
 			Runtime runtime=Runtime.getRuntime();

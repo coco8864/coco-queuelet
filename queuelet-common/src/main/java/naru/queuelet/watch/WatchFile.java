@@ -35,7 +35,7 @@ public class WatchFile {
 	private static final int IS_WATCHING_OFFSET=NAME_OFFSET+4+NAME_MAX;
 	private static final int IS_WATCHED_OFFSET=IS_WATCHING_OFFSET+4;
 	private static final int LAST_HEART_BEAT_OFFSET=IS_WATCHED_OFFSET+4;
-	private static final int IS_FORCE_END_OFFSET=LAST_HEART_BEAT_OFFSET+4;
+	private static final int IS_FORCE_END_OFFSET=LAST_HEART_BEAT_OFFSET+8;
 	private static final int IS_RESTART_OFFSET=IS_FORCE_END_OFFSET+4;
 	private static final int WATCH_SHARE_OFFSET=IS_RESTART_OFFSET+4;
 	
@@ -308,7 +308,7 @@ public class WatchFile {
             buffer[i*2 + 1] = hexmap[low];
         }
         token=new String(buffer);
-		WatchProcess watchProcess=new WatchProcess(this,cmd,env);
+		watchProcess=new WatchProcess(this,cmd,env);
 		watchProcess.start();
 		return true;
 	}
