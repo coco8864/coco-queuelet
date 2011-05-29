@@ -135,10 +135,10 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 	}
 
 	private void execChild(WatchFile watchFile){
-		StartupInfo startupInfo=watchFile.getResponseStartupInfo();
-		if(startupInfo!=null && startupInfo.getType()!=type){
+		StartupInfo resStartupInfo=watchFile.getResponseStartupInfo();
+		if(resStartupInfo!=null && resStartupInfo.getType()!=type){
 			//typeが違うstartupInfoは無効
-			startupInfo=null;
+			resStartupInfo=null;
 		}
 		int cmdLength=1 + /* command */ /* javaVmOptions */ 
 					  2 + /*-XmsXXm -XmxXXm */ 
@@ -146,19 +146,19 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 					  1 + /* naru.queuelet.startup.Startup */
 					  1;// conf.xml /* args */
 		String[] vmOption=javaVmOptions;
-		if(startupInfo!=null&&startupInfo.getJavaVmOptions()!=null){
-			vmOption=startupInfo.getJavaVmOptions();
+		if(resStartupInfo!=null&&resStartupInfo.getJavaVmOptions()!=null){
+			vmOption=resStartupInfo.getJavaVmOptions();
 		}
 		if(vmOption!=null){
 			cmdLength+=vmOption.length;
 		}
 		int heapSize=this.javaHepSize;
-		if(startupInfo!=null&&startupInfo.getJavaHeapSize()>0){
-			heapSize=startupInfo.getJavaHeapSize();
+		if(resStartupInfo!=null&&resStartupInfo.getJavaHeapSize()>0){
+			heapSize=resStartupInfo.getJavaHeapSize();
 		}
 		String[] args=queueletArgs;
-		if(startupInfo!=null&&startupInfo.getArgs()!=null){
-			args=startupInfo.getArgs();
+		if(resStartupInfo!=null&&resStartupInfo.getArgs()!=null){
+			args=resStartupInfo.getArgs();
 		}
 		if(args!=null){
 			cmdLength+=args.length;
@@ -188,11 +188,18 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 			System.arraycopy(args, 0, cmd,pos,args.length);
 			pos+=args.length;
 		}
+		
+		StartupInfo startupInfo=new StartupInfo();//次プロセスに通知するstartupInfo
+		startupInfo.setName(name);
+		startupInfo.setArgs(args);
+		startupInfo.setJavaHeapSize(heapSize);
+		startupInfo.setJavaVmOptions(vmOption);
+		
 		logger.info("execChild cmd");
 		for(int i=0;i<cmd.length;i++){
 			logger.info(i +":" +cmd[i]);
 		}
-		watchFile.execChild(cmd, null);
+		watchFile.execChild(cmd, null,startupInfo);
 	}
 	
 	private void watch(WatchFile watchFile,File stopFile) throws IOException{
