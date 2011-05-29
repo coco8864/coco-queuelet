@@ -415,11 +415,17 @@ public class Container {
 		*/
 
 		queueletDaemon.start();
+		isRunning=true;
 		logger.info("Queuelet Container start");
 	}
 
 	public void stop() {
 		stop(false,-1,null);
+	}
+	
+	public boolean isRunning=false;
+	public boolean isRunning(){
+		return isRunning;
 	}
 	
 	public void stop(boolean restart, int xmx, String vmoption) {
@@ -482,6 +488,7 @@ public class Container {
 		}
 		*/
 		synchronized(this){
+			isRunning=false;
 			this.notify();//mainスレッドを終了させる
 		}
 		logger.info("Queuelet Container stop");
