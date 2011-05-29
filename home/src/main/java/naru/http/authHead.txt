@@ -1,0 +1,11 @@
+<HTML>
+<HEAD>
+<title>AuthorizationProxy</title>
+</HEAD>
+<BODY>
+<H1>AuthorizationProxy</H1>
+<form  action="/authAdd" method="GET">
+TergetURL:<input type="text" name="targetUrl" value="http://" />
+<input type="submit" value="regist"/><BR/>
+</form>
+<H2>authorization list</H2>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN" 
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping
+>
+    <class
+        name="naru.web.AccessLog"
+        table="ACCESS_LOG"
+        lazy="true"
+        dynamic-update="true"
+        dynamic-insert="true"
+    >
+
+        <id
+            name="id"
+            column="ID"
+            type="java.lang.Long"
+        >
+            <generator class="native">
+              <!--  
+                  To add non XDoclet generator parameters, create a file named 
+                  hibernate-generator-params-AccessLog.xml 
+                  containing the additional parameters and place it in your merge dir. 
+              --> 
+            </generator>
+        </id>
+
+        <property
+            name="startTime"
+            type="java.util.Date"
+            update="true"
+            insert="true"
+            column="START_TIME"
+        />
+
+        <property
+            name="ip"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="IPADDRESS" 
+                length="16"
+            />
+        </property>
+
+        <property
+            name="requestLine"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="REQUEST_LINE" 
+                length="2048"
+            />
+        </property>
+
+        <property
+            name="processQueue"
+            type="long"
+            update="true"
+            insert="true"
+            column="PROCESS_QUEUE"
+        />
+
+        <property
+            name="requestBody"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="REQUEST_BODY" 
+                length="1024"
+            />
+        </property>
+
+        <property
+            name="statusCode"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="STATUS_CODE" 
+                length="3"
+            />
+        </property>
+
+        <property
+            name="responseLength"
+            type="long"
+            update="true"
+            insert="true"
+            column="RESPONSE_LENGTH"
+        />
+
+        <property
+            name="requestHeaderLength"
+            type="long"
+            update="true"
+            insert="true"
+            column="REQUEST_HADER_LENGTH"
+        />
+
+        <property
+            name="processTime"
+            type="long"
+            update="true"
+            insert="true"
+            column="PROCESS_TIME"
+        />
+
+        <property
+            name="timeRecode"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="TIME_RECODE" 
+                length="16"
+            />
+        </property>
+
+        <property
+            name="requestFile"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="REQUEST_FILE" 
+                length="16"
+            />
+        </property>
+
+        <property
+            name="responseFile"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="RESPONSE_FILE" 
+                length="16"
+            />
+        </property>
+
+        <property
+            name="mappingSource"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="MAPPING_SOURCE" 
+                length="128"
+            />
+        </property>
+
+        <property
+            name="mappingDestination"
+            type="java.lang.String"
+            update="true"
+            insert="true"
+        >
+            <column
+                name="MAPPING_DESTINATION" 
+                length="128"
+            />
+        </property>
+
+        <!--
+            To add non XDoclet property mappings, create a file named
+                hibernate-properties-AccessLog.xml
+            containing the additional properties and place it in your merge dir.
+        -->
+
+    </class>
+
+</hibernate-mapping>
