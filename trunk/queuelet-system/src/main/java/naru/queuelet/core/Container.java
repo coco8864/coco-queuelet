@@ -24,6 +24,8 @@ import naru.queuelet.loader.LoaderWrapper;
 import naru.queuelet.loader.MethodHooker;
 import naru.queuelet.startup.Startup;
 import naru.queuelet.store.QueueletStore;
+import naru.queuelet.watch.StartupInfo;
+import naru.queuelet.watch.WatchFile;
 
 import org.apache.commons.digester.Digester;
 import org.apache.log4j.Logger;
@@ -332,6 +334,14 @@ public class Container {
 			logger.info("System env:"+key +":" +value);
 		}
 		
+		/* 監視対象としての処理 */
+		queueletDaemon.start();
+		watchFile=WatchFile.mapWatchFile();
+		StartupInfo startupInfo=null;//Deamonがこのコンテナを起動した時の情報
+		if(watchFile!=null){
+			startupInfo=watchFile.getStartupInfo();
+		}
+		
 //		ClassLoader ql = (ClassLoader) Container.class.getClassLoader();
 		this.queueletArgs=Startup.getArgs();
 		
@@ -413,18 +423,21 @@ public class Container {
 			wrapper.init(this);
 		}
 		*/
-
-		queueletDaemon.start();
 		isRunning=true;
 		logger.info("Queuelet Container start");
 	}
-
+	
 	public void stop() {
 		stop(false,-1,null);
 	}
 	
+	private WatchFile watchFile=null;
 	public boolean isRunning=false;
 	public boolean isRunning(){
+		if(watchFile!=null){
+			//生存信号を送る
+			watchFile.heartBeat();
+		}
 		return isRunning;
 	}
 	
@@ -489,6 +502,10 @@ public class Container {
 		*/
 		synchronized(this){
 			isRunning=false;
+			if(watchFile!=null){
+				watchFile.term();
+				watchFile=null;
+			}
 			this.notify();//mainスレッドを終了させる
 		}
 		logger.info("Queuelet Container stop");
