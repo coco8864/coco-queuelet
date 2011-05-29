@@ -284,7 +284,10 @@ public class WatchFile {
 		this.watchFileBuffer=watchFileChannel.map(FileChannel.MapMode.READ_WRITE, 0, (long)WATCH_SHARE_OFFSET);
 	}
 
-	public boolean execChild(String[] cmd,String[] env){
+	/*
+	 * startupInfoは、次監視プロセスに渡すstartupInfo
+	 */
+	public boolean execChild(String[] cmd,String[] env,StartupInfo startupInfo){
 		if(!isDeamon || watchProcess!=null){
 			return false;
 		}
@@ -307,6 +310,13 @@ public class WatchFile {
             buffer[i*2] = hexmap[high];
             buffer[i*2 + 1] = hexmap[low];
         }
+        try {
+			saveStartupInfo(startupInfo);
+		} catch (IOException e) {
+			//startupInfoが通知できなくても致命的ではない
+			System.out.println("fail to save startup info");
+			e.printStackTrace();
+		}
         token=new String(buffer);
 		watchProcess=new WatchProcess(this,cmd,env);
 		watchProcess.start();
@@ -342,17 +352,19 @@ public class WatchFile {
 	
 	private void loadStartupInfo() throws IOException{
 		watchAccessFile.seek(WATCH_SHARE_OFFSET);
-		int length=(int)watchAccessFile.length()-WATCH_SHARE_OFFSET;
+		int length=watchAccessFile.readInt();
+//		int length=(int)watchAccessFile.length()-WATCH_SHARE_OFFSET;
+		if(length==0){
+			return;//startupInfoは通知されなかった。
+		}
 		startupInfo=deserializseStartupInfo(watchAccessFile,length);
 	}
 	
-	public void save() throws IOException{
-		saveStartupInfo();
-	}
-	
-	private void saveStartupInfo() throws IOException{
+	private void saveStartupInfo(StartupInfo startupInfo) throws IOException{
 		byte[] data=serializseStartupInfo(startupInfo);
+//		watchAccessFile.setLength(WATCH_SHARE_OFFSET);
 		watchAccessFile.seek(WATCH_SHARE_OFFSET);
+		watchAccessFile.writeInt(data.length);
 		watchAccessFile.write(data);
 	}
 	
@@ -396,8 +408,8 @@ public class WatchFile {
 	public boolean isRestart() {
 		return (readInt(IS_RESTART_OFFSET)!=0);
 	}
-	public void setStartupInfo(StartupInfo startInfo) {
-		this.startupInfo = startInfo;
+	public void setStartupInfo(StartupInfo startupInfo) {
+		this.startupInfo = startupInfo;
 	}
 	public void setName(String name) {
 		writeString(NAME_OFFSET, NAME_MAX, name);
