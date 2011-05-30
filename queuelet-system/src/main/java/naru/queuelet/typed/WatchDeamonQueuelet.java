@@ -125,9 +125,10 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		//停止中
 		if(watchFile.isRestart()){
 			if( restartLimit>0 && retryCount>=restartLimit){
-				logger.info("hangup:"+name);//音信不通
+				logger.info("retry over:"+name);//音信不通
 				return RETRY_OVER;
 			}
+			logger.info("restart:"+name);//音信不通
 			return RESTART;
 		}else{
 			return DEMON_STOP;
@@ -136,11 +137,16 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 
 	private void execChild(WatchFile watchFile){
 		StartupInfo resStartupInfo=watchFile.getResponseStartupInfo();
-		if(resStartupInfo!=null && resStartupInfo.getType()!=type){
-			//typeが違うstartupInfoは無効
-			resStartupInfo=null;
+		if(resStartupInfo!=null){
+			logger.info("receive startupInfo:"+name);
+			if(resStartupInfo.getType()!=type){
+				logger.warn("startupInfo type is missmatch:"+resStartupInfo.getType());
+				//typeが違うstartupInfoは無効
+				resStartupInfo=null;
+			}
 		}
-		int cmdLength=1 + /* command */ /* javaVmOptions */ 
+		int cmdLength=1 + /* command */ /* javaVmOptions */
+					  1 + /* -DQUEUELET_HOME="" */
 					  2 + /*-XmsXXm -XmxXXm */ 
 					  2 + /* -cp ssssssssssss */
 					  1 + /* naru.queuelet.startup.Startup */
@@ -168,6 +174,8 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		int pos=0;
 		cmd[pos]=getJavaCommand();
 		pos++;
+		cmd[pos]="-DQUEUELET_HOME="+ System.getProperty("QUEUELET_HOME");
+		pos++;
 		if(vmOption!=null){
 			System.arraycopy(vmOption, 0, cmd,pos,vmOption.length);
 			pos+=vmOption.length;
@@ -190,12 +198,13 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		}
 		
 		StartupInfo startupInfo=new StartupInfo();//次プロセスに通知するstartupInfo
+		startupInfo.setType(type);
 		startupInfo.setName(name);
 		startupInfo.setArgs(args);
 		startupInfo.setJavaHeapSize(heapSize);
 		startupInfo.setJavaVmOptions(vmOption);
 		
-		logger.info("execChild cmd");
+		logger.info("restartConf:" + watchFile.getStartupInfo().getRestartCount() +" cmd:");
 		for(int i=0;i<cmd.length;i++){
 			logger.info(i +":" +cmd[i]);
 		}
