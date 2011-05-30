@@ -31,7 +31,7 @@ public class WatchProcess implements Runnable{
 				if(len<=0){
 					break;
 				}
-				out.println(new String(buf,0,len));
+				out.print(new String(buf,0,len));
 			}
 			try {
 				is.close();
@@ -116,7 +116,7 @@ public class WatchProcess implements Runnable{
 			process.waitFor();
 			//プロセス終了、responseファイルを探す
 			readResponseStartupInfo();
-			System.out.println("exitValue:"+p.exitValue());
+			System.out.println(name +":exitValue:"+p.exitValue());
 			process=null;
 		} catch (InterruptedException e) {
 		} catch (IOException e) {
