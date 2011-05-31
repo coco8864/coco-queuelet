@@ -41,6 +41,8 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 	private int restartLimit;
 	private long heartBeatLimit;
 	private String queueletConf;
+	
+	/* ˆÈ~‚É‚Í‘O‰ñ‚Ì‹N“®î•ñ‚ðŠi”[AˆÙíŽžÄ‹N“®‚É”õ‚¦‚é */
 	private String queueletArgs[];
 	private String javaArgs[];
 	private String[] javaVmOptions;
@@ -151,20 +153,20 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 					  2 + /* -cp ssssssssssss */
 					  1 + /* naru.queuelet.startup.Startup */
 					  1;// conf.xml /* args */
-		String[] vmOption=javaVmOptions;
+		String[] vmOption=this.javaVmOptions;
 		if(resStartupInfo!=null&&resStartupInfo.getJavaVmOptions()!=null){
-			vmOption=resStartupInfo.getJavaVmOptions();
+			this.javaVmOptions=vmOption=resStartupInfo.getJavaVmOptions();
 		}
 		if(vmOption!=null){
 			cmdLength+=vmOption.length;
 		}
 		int heapSize=this.javaHepSize;
 		if(resStartupInfo!=null&&resStartupInfo.getJavaHeapSize()>0){
-			heapSize=resStartupInfo.getJavaHeapSize();
+			this.javaHepSize=heapSize=resStartupInfo.getJavaHeapSize();
 		}
-		String[] args=queueletArgs;
+		String[] args=this.queueletArgs;
 		if(resStartupInfo!=null&&resStartupInfo.getArgs()!=null){
-			args=resStartupInfo.getArgs();
+			this.queueletArgs=args=resStartupInfo.getArgs();
 		}
 		if(args!=null){
 			cmdLength+=args.length;
