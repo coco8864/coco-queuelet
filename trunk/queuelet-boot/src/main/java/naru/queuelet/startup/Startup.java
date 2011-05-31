@@ -409,9 +409,15 @@ public class Startup {
 		return false;
 	}
 
-	private static long RUNNING_CHECK_INTERVAL=10000;
+	private static String RUNNING_CHECK_INTERVAL="QueueletBootRunningCheckInterval";
+	private static long runningCheckInterval=10000;
+	
 	/* •’Ê‚Ì“ü‚èŒû */
 	public static void main(String[] args) throws FileNotFoundException {
+		String interval=System.getProperty(RUNNING_CHECK_INTERVAL);
+		if(interval!=null){
+			runningCheckInterval=Long.parseLong(interval);
+		}
 		clsInternalProperties();
 		startupProperteis=new StartupProperties();
 		try {
@@ -434,11 +440,11 @@ public class Startup {
 			Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
 			synchronized(mainContainerObject){
 				while(true){
-					if(!isRunning()){
+					if(!isRunning()){//‚±‚±‚Å¶‘¶ŠÄ‹‚ÌhearBeat‚ğ”­s‚µ‚Ä‚¢‚é
 						break;
 					}
 					try {
-						mainContainerObject.wait(RUNNING_CHECK_INTERVAL);
+						mainContainerObject.wait(runningCheckInterval);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
