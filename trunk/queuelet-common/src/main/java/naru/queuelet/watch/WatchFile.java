@@ -238,6 +238,7 @@ public class WatchFile {
 		File file=getWatchFile(name);
 		if(file.exists()){
 			if(!file.delete()){
+				System.out.println("aleady watching."+name);
 				return null;//Šù‚ÉŠÄŽ‹’†
 			}
 		}
