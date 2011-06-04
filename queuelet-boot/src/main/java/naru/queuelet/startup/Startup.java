@@ -23,10 +23,6 @@ import naru.queuelet.QueueletHooker;
  * ウィンドウ > 設定 > Java > コード生成 > コードとコメント
  */
 public class Startup {
-	private static final String QUEUELET_RESTART="QueueletRestart";
-	private static final String QUEUELET_VM_OPTION="QueueletVmOption";
-	private static final String QUEUELET_VM_XMX="QueuletVmXmx";
-	
 	public static final String MAINLOADER="queuelet.hooker.mainloader";
 	public static final String DEFAULT_MINLOADER_NAME="main";
 	
