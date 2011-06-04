@@ -90,7 +90,6 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		if(retryResetInterval!=null){
 			this.retryResetInterval=Integer.parseInt(retryResetInterval);
 		}
-		
 		this.name=(String)param.get("watch.name");
 		String heartBeatLimit=(String)param.get("watch.heartBeatLimit");
 		this.heartBeatLimit=Long.parseLong(heartBeatLimit);
@@ -115,7 +114,6 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		if(this.javaArgs==null){
 			this.javaArgs=new String[0];
 		}
-		
 		String recoverHeapSize=(String)param.get("java.recoverHeapSize");
 		if(recoverHeapSize!=null){
 			this.recoverJavaHeapSize=Integer.parseInt(recoverHeapSize);
@@ -125,6 +123,8 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		this.recoverJavaVmOptions=arryParam(param,"java.recoverVmOption");
 		this.recoverQueueletArgs=arryParam(param,"queuelet.recoverArg");
 		this.recoverJavaArgs=arryParam(param,"java.recoverArg");
+
+		logger.info("name:"+name + ":heartBeatLimit:" +heartBeatLimit+":restartLimit:"+restartLimit+":queueletConf:"+queueletConf);
 		thread=new Thread(this);
 		thread.start();
 	}
@@ -158,6 +158,8 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 				return FORCE_END;
 			}
 			long lastHeartBeat=watchFile.getLastHeartBeat();
+			long freeHeapSize=watchFile.getFreeHeapSize();
+			logger.debug("lastHeartBeat:"+lastHeartBeat + " freeHeapSize:"+freeHeapSize);
 			long heartBeartInterval=System.currentTimeMillis()-lastHeartBeat;
 			if(heartBeatLimit>0 && heartBeatLimit<heartBeartInterval){
 				logger.info("hungup:"+name+":" + new Date(lastHeartBeat) +":"+heartBeartInterval);//‰¹M•s’Ê
@@ -190,6 +192,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		}
 		int cmdLength=1 + /* command */ /* javaVmOptions */
 					  1 + /* -DQUEUELET_HOME="" */
+					  1 + /* -DQueueletBootRunningCheckInterval=10000 */
 					  2 + /*-XmsXXm -XmxXXm */ 
 					  2 + /* -cp ssssssssssss */
 					  1 + /* naru.queuelet.startup.Startup */
@@ -219,6 +222,8 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		cmd[pos]=getJavaCommand();
 		pos++;
 		cmd[pos]="-DQUEUELET_HOME="+ System.getProperty("QUEUELET_HOME");
+		pos++;
+		cmd[pos]="-DQueueletBootRunningCheckInterval="+ heartBeatLimit/2;
 		pos++;
 		if(javaVmOptions!=null){
 			System.arraycopy(javaVmOptions, 0, cmd,pos,javaVmOptions.length);
