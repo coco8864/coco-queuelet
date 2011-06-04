@@ -22,6 +22,7 @@ public class WatchFile {
 	 * 監視中　isWatching 4 
 	 * 監視対象認知 isWatched 4
 	 * 最新更新 lastHeartBeat 8
+	 * 空きメモリ freeHeapSize 8
 	 * isForceEnd
 	 * isRestart
 	 * --------
@@ -33,7 +34,8 @@ public class WatchFile {
 	private static final int IS_WATCHING_OFFSET=NAME_OFFSET+4+NAME_MAX;
 	private static final int IS_WATCHED_OFFSET=IS_WATCHING_OFFSET+4;
 	private static final int LAST_HEART_BEAT_OFFSET=IS_WATCHED_OFFSET+4;
-	private static final int IS_FORCE_END_OFFSET=LAST_HEART_BEAT_OFFSET+8;
+	private static final int FREE_HEAP_SIZE_OFFSET=LAST_HEART_BEAT_OFFSET+8;
+	private static final int IS_FORCE_END_OFFSET=FREE_HEAP_SIZE_OFFSET+8;
 	private static final int IS_RESTART_OFFSET=IS_FORCE_END_OFFSET+4;
 	private static final int WATCH_SHARE_OFFSET=IS_RESTART_OFFSET+4;
 	
@@ -425,6 +427,9 @@ public class WatchFile {
 	public long getLastHeartBeat() {
 		return readLong(LAST_HEART_BEAT_OFFSET);
 	}
+	public long getFreeHeapSize() {
+		return readLong(FREE_HEAP_SIZE_OFFSET);
+	}
 	public boolean isForceEnd() {
 		return (readInt(IS_FORCE_END_OFFSET)!=0);
 	}
@@ -445,6 +450,8 @@ public class WatchFile {
 	}
 	public void heartBeat(){
 		writeLong(LAST_HEART_BEAT_OFFSET,System.currentTimeMillis());
+		Runtime runtime=Runtime.getRuntime();
+		writeLong(FREE_HEAP_SIZE_OFFSET,runtime.freeMemory());
 	}
 	public void setForceEnd(boolean isForceEnd) {
 		writeInt(IS_FORCE_END_OFFSET,isForceEnd?1:0);
