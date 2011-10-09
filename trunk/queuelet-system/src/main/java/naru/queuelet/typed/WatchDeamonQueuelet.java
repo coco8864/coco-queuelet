@@ -180,7 +180,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		}
 	}
 
-	private void execChild(WatchFile watchFile){
+	private boolean execChild(WatchFile watchFile){
 		StartupInfo resStartupInfo=watchFile.getResponseStartupInfo();
 		if(resStartupInfo!=null){
 			logger.info("receive startupInfo:"+name);
@@ -257,23 +257,25 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		for(int i=0;i<cmd.length;i++){
 			logger.info(i +":" +cmd[i]);
 		}
-		watchFile.execChild(cmd, null,startupInfo);
+		return watchFile.execChild(cmd, null,startupInfo);
 	}
 	
 	private void watch(WatchFile watchFile,File stopFile) throws IOException{
-		int retryCount=0;
+		int retryCount=0;/* 短い間隔で連続的に起動に失敗した場合、起動処理をやめるため */
 		long retryResetTime=0;
 		while(!stopFile.exists()){
 			int result=check(watchFile,retryCount);
 			if(result==FORCE_END){
 				watchFile.terminateChild();
-				retryResetTime=System.currentTimeMillis()+retryResetInterval;
 			}else if(result==RESTART){
-				execChild(watchFile);
-				retryCount++;
+				if( execChild(watchFile) ){
+					retryResetTime=System.currentTimeMillis()+retryResetInterval;
+					retryCount++;
+				}
 			}else if(result==RETRY_OVER || result==DEMON_STOP){
 				break;
 			}else if(result==NOMAL){
+				/* 起動コマンドをたたいて、retryResetInterval経過、NOMAL状態ならretryCountをリセット */
 				if(retryResetTime>0 && System.currentTimeMillis()>=retryResetTime){
 					logger.info("start success:"+name);
 					retryCount=0;
