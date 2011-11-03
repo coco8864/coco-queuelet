@@ -8,6 +8,7 @@ package naru.queuelet.typed;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
@@ -44,6 +45,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 	private int restartLimit;
 	private long heartBeatLimit;
 	private String queueletConf;
+	private boolean isFirstExec=true;//初回起動フラグ
 	
 	/* 起動以降には前回の起動情報を格納、異常再起動に備える */
 	private String queueletArgs[];
@@ -69,12 +71,22 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		if(lengthParam==null){
 			return null;
 		}
+		
 		int length=Integer.parseInt(lengthParam);
-		String[] result=new String[length];
+		ArrayList<String> paramList=new ArrayList<String>();
+//		String[] result=new String[length];
 		for(int i=0;i<length;i++){
-			result[i]=(String)param.get(key+"."+i);
+			String p=(String)param.get(key+"."+i);
+			if(p==null){
+				continue;
+			}
+			p=p.trim();
+			if("".equals(p)){
+				continue;
+			}
+			paramList.add(p);
 		}
-		return result;
+		return paramList.toArray(new String[0]);
 	}
 	
 	/* (非 Javadoc)
@@ -107,12 +119,19 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 			this.javaVmOptions=new String[0];
 		}
 		this.queueletArgs=arryParam(param,"queuelet.arg");
+		logger.debug("init1 this.queueletArgs:"+this.queueletArgs);
 		if(this.queueletArgs==null){
-			this.queueletArgs=new String[0];
+			/* 定義にjava.argがない場合は、自分に指定されたargを引き継ぐ */
+			this.queueletArgs=(String [])param.get("QueueletArgs");
+			logger.debug("init queueletArgs this.queueletArgs:"+this.queueletArgs +":length:" +this.queueletArgs.length);
+//			this.queueletArgs=new String[0];
 		}
 		this.javaArgs=arryParam(param,"java.arg");
 		if(this.javaArgs==null){
-			this.javaArgs=new String[0];
+			/* 定義にjava.argがない場合は、自分に指定されたargを引き継ぐ */
+			this.javaArgs=(String [])param.get("QueueletArgs");
+			logger.debug("init javaArgs this.queueletArgs:"+this.javaArgs +":length:" +this.javaArgs.length);
+//			this.javaArgs=new String[0];
 		}
 		String recoverHeapSize=(String)param.get("java.recoverHeapSize");
 		if(recoverHeapSize!=null){
@@ -209,10 +228,16 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		}else if(recoverJavaHeapSize>0){
 			javaHeapSize=recoverJavaHeapSize;
 		}
+		logger.debug("execChild1 this.queueletArgs:"+this.queueletArgs);
 		if(resStartupInfo!=null&&resStartupInfo.getArgs()!=null){
+			logger.debug("execChild2 this.queueletArgs:"+this.queueletArgs);
 			queueletArgs=resStartupInfo.getArgs();
-		}else if(recoverQueueletArgs!=null){
+		}else if(isFirstExec==false && recoverQueueletArgs!=null){
+			logger.debug("execChild3 this.queueletArgs:"+this.queueletArgs);
 			queueletArgs=this.recoverQueueletArgs;
+		}
+		for(int i=0;i<queueletArgs.length;i++){
+			logger.debug("execChild4 i:"+ i +" queueletArg:"+queueletArgs[i]);
 		}
 		cmdLength+=queueletArgs.length;
 		
@@ -257,6 +282,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		for(int i=0;i<cmd.length;i++){
 			logger.info(i +":" +cmd[i]);
 		}
+		isFirstExec=false;
 		return watchFile.execChild(cmd, null,startupInfo);
 	}
 	
@@ -278,6 +304,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 				/* 起動コマンドをたたいて、retryResetInterval経過、NOMAL状態ならretryCountをリセット */
 				if(retryResetTime>0 && System.currentTimeMillis()>=retryResetTime){
 					logger.info("start success:"+name);
+					System.out.println("WatchDeamonQueuelet:start success:"+name +" wait:" +retryResetTime + " now:"+new Date().toString());
 					retryCount=0;
 					retryResetTime=0;
 				}
