@@ -220,10 +220,13 @@ public class WatchFile {
 	public static File getWatchDir(){
 		String queueletHome=System.getProperty(QUEUELET_HOME);
 		File watchDir=new File(queueletHome,WATCH_DIR_NAME);
-		if(watchDir.exists()&&watchDir.isDirectory()){
-			return watchDir;
+		if(!watchDir.exists()){
+			watchDir.mkdirs();
 		}
-		return null;
+		if(!watchDir.isDirectory()){
+			throw new RuntimeException("WatchDir is not Directory."+watchDir.getAbsolutePath());
+		}
+		return watchDir;
 	}
 	private static File getWatchFile(String name){
 		File watchFile=new File(getWatchDir(),name+WATCH_FILE_EXT);
