@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
 
@@ -71,22 +72,19 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		if(lengthParam==null){
 			return null;
 		}
-		
 		int length=Integer.parseInt(lengthParam);
-		ArrayList<String> paramList=new ArrayList<String>();
-//		String[] result=new String[length];
+		ArrayList paramList=new ArrayList();
 		for(int i=0;i<length;i++){
-			String p=(String)param.get(key+"."+i);
-			if(p==null){
+			String value=(String)param.get(key+"."+i);
+			if(value==null){
 				continue;
 			}
-			p=p.trim();
-			if("".equals(p)){
-				continue;
+			StringTokenizer st=new StringTokenizer(value," ");
+			while(st.hasMoreTokens()){
+				paramList.add(st.nextToken());
 			}
-			paramList.add(p);
 		}
-		return paramList.toArray(new String[0]);
+		return (String[])paramList.toArray(new String[0]);
 	}
 	
 	/* (非 Javadoc)
@@ -304,7 +302,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 				/* 起動コマンドをたたいて、retryResetInterval経過、NOMAL状態ならretryCountをリセット */
 				if(retryResetTime>0 && System.currentTimeMillis()>=retryResetTime){
 					logger.info("start success:"+name);
-					System.out.println("WatchDeamonQueuelet:start success:"+name +" wait:" +retryResetTime + " now:"+new Date().toString());
+					System.out.println("WatchDeamonQueuelet:start success:"+name + " " +new Date().toString() + " interval:" +retryResetInterval);
 					retryCount=0;
 					retryResetTime=0;
 				}
