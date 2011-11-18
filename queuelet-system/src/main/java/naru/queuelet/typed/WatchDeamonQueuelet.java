@@ -254,7 +254,7 @@ public class WatchDeamonQueuelet implements Queuelet,Runnable {
 		}
 		cmd[pos]="-Xms" + javaHeapSize +"m";
 		pos++;
-		cmd[pos]="-Xms" + javaHeapSize +"m";
+		cmd[pos]="-Xmx" + javaHeapSize +"m";
 		pos++;
 		cmd[pos]="-cp";
 		pos++;
