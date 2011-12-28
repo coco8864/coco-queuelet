@@ -63,7 +63,7 @@ public class Terminal {
 	private long maxDelay=0;
 	
 	private int queueEntryPoolMax;
-	private List queueEntryPool=new ArrayList();
+	private List queueEntryPool=new LinkedList();
 	private static class QueueEntry implements Serializable{
 		private static final long serialVersionUID = 1L;
 		public Object entry;
