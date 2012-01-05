@@ -157,6 +157,7 @@ public class Terminal {
 			}
 			if(queueEntry!=null){
 				Object entry=queueEntry.entry;
+				queueEntry.entry=null;
 				List queueEntryPool=getQueueEntryPool();
 				if(queueEntryPool.size()<queueEntryPoolMax){
 					queueEntryPool.add(queueEntry);
