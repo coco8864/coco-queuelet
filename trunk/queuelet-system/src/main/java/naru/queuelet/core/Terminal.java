@@ -62,8 +62,18 @@ public class Terminal {
 	private int totalOutCount=0;
 	private long maxDelay=0;
 	
-	private int queueEntryPoolMax;
-	private List queueEntryPool=new LinkedList();
+	//queueEntryをThread毎にpoolする上限、数個で十分のはずだが念のため
+	private int queueEntryPoolMax=64;
+	private ThreadLocal queueEntryPoolTL=new ThreadLocal();
+	private List getQueueEntryPool(){
+		List queueEntryPool=(List)queueEntryPoolTL.get();
+		if(queueEntryPool==null){
+			queueEntryPool=new LinkedList();
+			queueEntryPoolTL.set(queueEntryPool);
+		}
+		return queueEntryPool;
+	}
+//	private List queueEntryPool=new LinkedList();
 	private static class QueueEntry implements Serializable{
 		private static final long serialVersionUID = 1L;
 		public Object entry;
@@ -135,7 +145,7 @@ public class Terminal {
 					if(maxDelay<time){
 						maxDelay=time;
 					}
-					return queueEntry.entry;
+					break;
 				}
 				try {
 					waitThreadCount++;
@@ -146,11 +156,12 @@ public class Terminal {
 				}
 			}
 			if(queueEntry!=null){
-				synchronized(queueEntryPool){
-					if(queueEntryPool.size()<queueEntryPoolMax){
-						queueEntryPool.add(queueEntry);
-					}
+				Object entry=queueEntry.entry;
+				List queueEntryPool=getQueueEntryPool();
+				if(queueEntryPool.size()<queueEntryPoolMax){
+					queueEntryPool.add(queueEntry);
 				}
+				return entry;
 			}
 		}
 		return null;
@@ -202,11 +213,10 @@ public class Terminal {
 			}
 		}
 		//QueueEntryのプーリング
+		List queueEntryPool=getQueueEntryPool();
 		QueueEntry queueEntry=null;
-		synchronized(queueEntryPool){
-			if(queueEntryPool.size()>0){
-				queueEntry=(QueueEntry)queueEntryPool.remove(0);
-			}
+		if(queueEntryPool.size()>0){
+			queueEntry=(QueueEntry)queueEntryPool.remove(0);
 		}
 		if(queueEntry==null){
 			queueEntry=new QueueEntry();
@@ -479,7 +489,7 @@ public class Terminal {
 	 */
 	public void setThreadCount(int i) {
 		threadCount = i;
-		queueEntryPoolMax=threadCount*4;
+//		queueEntryPoolMax=threadCount*4;
 	}
 
 	/**
