@@ -118,6 +118,7 @@ public class Terminal {
 	 * @return
 	 */
 	Object deque() {
+		QueueEntry queueEntry=null;
 		while (true) {
 			synchronized (this) {
 				if (status == STATUS_MUST_STOP) {
@@ -127,7 +128,6 @@ public class Terminal {
 					break;
 				}
 			}
-			QueueEntry queueEntry=null;
 			synchronized (queue) {
 				/* ˆ—ƒXƒŒƒbƒh‚ðŒ¸­‚³‚¹‚é */
 				if (decrementThreadCount > 0) {
@@ -155,15 +155,15 @@ public class Terminal {
 					e1.printStackTrace();
 				}
 			}
-			if(queueEntry!=null){
-				Object entry=queueEntry.entry;
-				queueEntry.entry=null;
-				List queueEntryPool=getQueueEntryPool();
-				if(queueEntryPool.size()<queueEntryPoolMax){
-					queueEntryPool.add(queueEntry);
-				}
-				return entry;
+		}
+		if(queueEntry!=null){
+			Object entry=queueEntry.entry;
+			queueEntry.entry=null;
+			List queueEntryPool=getQueueEntryPool();
+			if(queueEntryPool.size()<queueEntryPoolMax){
+				queueEntryPool.add(queueEntry);
 			}
+			return entry;
 		}
 		return null;
 	}
