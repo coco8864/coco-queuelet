@@ -312,6 +312,7 @@ public class Terminal {
 		}
 		for(int i=0;i<queuelets.size();i++){
 			QueueletWrapper qw=(QueueletWrapper)queuelets.get(i);
+			logger.info("init queuelet."+qw.getType() +":" +qw.getClassName());
 			qw.init(container);
 		}
 //		Iterator itr=queuelets.iterator();
