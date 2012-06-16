@@ -388,31 +388,22 @@ public class Container {
 		for(int i=0;i<terminalOrderNames.size();i++){
 			Object name=terminalOrderNames.get(i);
 			Terminal terminal = (Terminal) terminalMap.get(name);
+			logger.info("init terminal."+terminal.getName());
+			isRunning();//¶‘¶’Ê’m
 			terminal.init(this);
 		}
-		/*
-		itr = terminalMap.values().iterator();
-		while (itr.hasNext()) {
-			Terminal terminal = (Terminal) itr.next();
-			terminal.init(this);
-		}
-		*/
 		
+		isRunning();//¶‘¶’Ê’m
 		for(int i=0;i<terminalOrderNames.size();i++){
 			Object name=terminalOrderNames.get(i);
 			Terminal terminal = (Terminal) terminalMap.get(name);
 			terminal.start();
 		}
-		/*
-		itr = terminalMap.values().iterator();
-		while (itr.hasNext()) {
-			Terminal terminal = (Terminal) itr.next();
-			terminal.start();
-		}
-		*/
 		
 		for(int i=0;i<queuelets.size();i++){
 			QueueletWrapper wrapper = (QueueletWrapper) queuelets.get(i);
+			isRunning();//¶‘¶’Ê’m
+			logger.info("init queuelet."+wrapper.getType() +":" +wrapper.getClassName());
 			wrapper.init(this,startupInfo);
 		}
 		queueletDaemon.start();
