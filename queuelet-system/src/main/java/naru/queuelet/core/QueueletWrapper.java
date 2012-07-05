@@ -397,4 +397,8 @@ public class QueueletWrapper implements QueueletContext{
 		return container.getQueueletProperties().resolveProperty(value,prop);
 	}
 
+	public boolean heatBeat() {
+		return container.heartBeat();
+	}
+
 }

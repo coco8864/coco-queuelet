@@ -389,11 +389,11 @@ public class Container {
 			Object name=terminalOrderNames.get(i);
 			Terminal terminal = (Terminal) terminalMap.get(name);
 			logger.info("init terminal."+terminal.getName());
-			isRunning();//生存通知
+			heartBeat();//生存通知
 			terminal.init(this);
 		}
 		
-		isRunning();//生存通知
+		heartBeat();//生存通知
 		for(int i=0;i<terminalOrderNames.size();i++){
 			Object name=terminalOrderNames.get(i);
 			Terminal terminal = (Terminal) terminalMap.get(name);
@@ -402,7 +402,7 @@ public class Container {
 		
 		for(int i=0;i<queuelets.size();i++){
 			QueueletWrapper wrapper = (QueueletWrapper) queuelets.get(i);
-			isRunning();//生存通知
+			heartBeat();//生存通知
 			logger.info("init queuelet."+wrapper.getType() +":" +wrapper.getClassName());
 			wrapper.init(this,startupInfo);
 		}
@@ -420,7 +420,7 @@ public class Container {
 	
 	private WatchFile watchFile=null;
 	public boolean isRunning=false;
-	public boolean isRunning(){
+	public boolean heartBeat(){
 		if(watchFile!=null){
 			//生存信号を送る
 			watchFile.heartBeat();
