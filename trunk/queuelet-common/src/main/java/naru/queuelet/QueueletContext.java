@@ -35,6 +35,12 @@ public interface QueueletContext {
 	 * args:再起動時に指定する引数を指定、nullの場合、現状値
 	 */
 	void finish(boolean isForceEnd,boolean isRestart,StartupInfo startupInfo);
+	
+	/**
+	 * 生存信号を送信,長時間initを実行すると監視タイムアウトにかかるのを回避
+	 */
+	boolean heatBeat();
+	
 	/**
 	 * @param string
 	 * @param file
