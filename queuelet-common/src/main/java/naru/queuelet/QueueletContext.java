@@ -6,7 +6,6 @@
  */
 package naru.queuelet;
 
-import java.util.Map;
 import java.util.Properties;
 
 import naru.queuelet.watch.StartupInfo;
