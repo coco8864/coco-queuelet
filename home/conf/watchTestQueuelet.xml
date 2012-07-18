@@ -1,8 +1,0 @@
-<?xml version="1.0" ?>
-<queueApp checkInterval="check">
-  <loader name="loader1" callStack="true" home="${queuelet.user.home}" delegate="false">
-  </loader>
-
-  <queuelet className="naru.test.queuelet.WatchTestQueuelet" loaderName="loader1">
-  </queuelet>
-</queueApp>

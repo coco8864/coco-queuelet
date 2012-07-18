@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="Shift_JIS" ?>
-<queueApp checkInterval="1" >
-  <loader name="main" home="${queuelet.user.home}" >
-  </loader>
-  <queuelet type="generalMain" loaderName="main"/>
-</queueApp>
