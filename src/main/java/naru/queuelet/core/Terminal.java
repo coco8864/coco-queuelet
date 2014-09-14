@@ -16,6 +16,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import naru.queuelet.store.QueueletStore;
 
@@ -39,7 +42,6 @@ public class Terminal {
 	private String port=null;
 	private QueueletStore store=null;
 
-//	private StoreTerminal storeTerminal=null;
 	private int threadId=0;
 	public synchronized int getThreadId(){
 		threadId++;
@@ -55,14 +57,14 @@ public class Terminal {
 		}
 	}
 
-	private List queue = Collections.synchronizedList(new LinkedList());
+	//private List queue = Collections.synchronizedList(new LinkedList());
+	private BlockingQueue<QueueEntry> queue;//=new LinkedBlockingQueue<QueueEntry>();
 	private Set threads = Collections.synchronizedSet(new HashSet());
 	private int waitThreadCount;
 	private int totalInCount=0;
 	private int totalOutCount=0;
 	private long maxDelay=0;
 	
-	//queueEntryをThread毎にpoolする上限、数個で十分のはずだが念のため
 	private int queueEntryPoolMax=64;
 	private ThreadLocal queueEntryPoolTL=new ThreadLocal();
 	private List getQueueEntryPool(){
@@ -73,7 +75,6 @@ public class Terminal {
 		}
 		return queueEntryPool;
 	}
-//	private List queueEntryPool=new LinkedList();
 	private static class QueueEntry implements Serializable{
 		private static final long serialVersionUID = 1L;
 		public Object entry;
@@ -127,16 +128,29 @@ public class Terminal {
 				if (status == STATUS_STOPPING && getQueLength()==0) {
 					break;
 				}
-			}
-			synchronized (queue) {
 				/* 処理スレッドを減少させる */
 				if (decrementThreadCount > 0) {
 					decrementThreadCount--;
-					if (getQueLength() > 0) {
-						queue.notify();
-					}
 					return null;
 				}
+			}
+			
+			waitThreadCount++;
+			try {
+				queueEntry=queue.poll(STOP_WAIT_TIMEOUT,TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				logger.warn("queue.poll error",e);
+			}
+			waitThreadCount--;
+			if(queueEntry!=null){
+				long time=System.currentTimeMillis()-queueEntry.enqueueTime;
+				if(maxDelay<time){
+					maxDelay=time;
+				}
+				break;
+			}
+			/*
+			synchronized (queue) {
 				
 				int queLength=getQueLength();
 				if (queLength > 0) {
@@ -150,11 +164,11 @@ public class Terminal {
 				try {
 					waitThreadCount++;
 					queue.wait(STOP_WAIT_TIMEOUT); /* 終了コマンドのレスポンスに影響 */
-					waitThreadCount--;
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-			}
+			//		waitThreadCount--;
+			//	} catch (InterruptedException e1) {
+			//		e1.printStackTrace();
+			//	}
+			//}
 		}
 		if(queueEntry!=null){
 			Object entry=queueEntry.entry;
@@ -244,38 +258,18 @@ public class Terminal {
 	/** 
 	 *   
 	 */
-	public synchronized void enqueMem(Object queEntry) {
+	public void enqueMem(Object queEntry) {
 		if(queEntry==null){
 			throw new IllegalArgumentException("Terminal enque error.queElement is null");
 		}
-		
-		while (true) {
-			/*
-			if (status != STATUS_START && threadCount!=0 ) {
-				throw new IllegalStateException("fail to enque:status=" + status);
+		try {
+			if (queue.offer((QueueEntry) queEntry, MAX_LENGTH_WAIT_TIMEOUT,
+					TimeUnit.MILLISECONDS)) {
+				totalInCount++;
 			}
-			*/
-			synchronized (queue) {
-				if (maxQueueLength<0 || getQueLength() < maxQueueLength ) {
-					totalInCount++;
-					queue.add(queEntry);
-					queue.notify();
-					return;
-				} else if (enqueBlock==false) {
-					//Queが長くなりすぎた、エラーとする
-					throw new IllegalStateException(
-						"Que length too long:maxQueLength="	+ maxQueueLength
-							+ ",curQueLength=" + getQueLength());
-				}
-			}
-			logger.debug("Que length too long:maxQueLength="	+ maxQueueLength
-							+ ",curQueLength=" + getQueLength());
-			/* Que長が伸びすぎた場合の待ち処理 */
-			try {
-				wait(MAX_LENGTH_WAIT_TIMEOUT);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+		} catch (InterruptedException e) {
+			logger.error("fail to queue.offer",e);
+			throw new RuntimeException("fail to queue.offer",e);
 		}
 	}
 
@@ -314,6 +308,11 @@ public class Terminal {
 			QueueletWrapper qw=(QueueletWrapper)queuelets.get(i);
 			logger.info("init queuelet."+qw.getType() +":" +qw.getClassName());
 			qw.init(container);
+		}
+		if(maxQueueLength>0){
+			queue=new LinkedBlockingQueue<QueueEntry>(maxQueueLength);
+		}else{
+			queue=new LinkedBlockingQueue<QueueEntry>();
 		}
 //		Iterator itr=queuelets.iterator();
 //		while(itr.hasNext()){
@@ -357,9 +356,7 @@ public class Terminal {
 		if (status != STATUS_START) {
 			throw new IllegalStateException("fail to start:status=" + status);
 		}
-		synchronized (queue) { //本来減少カウンタ用ロックは別がいいかもしれない
-			decrementThreadCount++;
-		}
+		decrementThreadCount++;
 	}
 
 	/**
